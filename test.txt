@@ -1,0 +1,3 @@
+Linha com trailing whitespace    
+      Linha com whitespace antes
+    Linha com ambos    Oi
