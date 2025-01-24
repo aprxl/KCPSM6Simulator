@@ -1,3 +1,5 @@
-Linha com trailing whitespace    
-      Linha com whitespace antes
-    Linha com ambos    Oi
+main:
+  add s1, 01 ; This is a comment
+  sub s1, ff ; This is a comment as well!
+  xor s2, 54'd
+  xor sF, 00010101'b
