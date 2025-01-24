@@ -14,7 +14,7 @@ impl Reader {
         }
     }
 
-    pub fn read_and_parse(&mut self) {
+    pub fn read_and_parse(&mut self) -> &mut Reader {
         // Open file and handle possible error.
         let file = File::open(self.file.clone())
             .expect("Unable to open the file.");
@@ -39,6 +39,8 @@ impl Reader {
 
             self.contents.push(words);
         }
+
+        self
     }
 
     pub const fn get_contents(&self) -> &Vec<Vec<String>> {

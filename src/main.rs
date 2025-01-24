@@ -1,4 +1,4 @@
-use interpreter::reader::{Reader};
+use interpreter::{reader::*, tokenizer::*};
 
 pub mod interpreter;
 
@@ -7,13 +7,11 @@ fn main() {
         "test.txt"
     );
 
-    r.read_and_parse();
+    let mut t = Tokenizer::new();
 
-    for (i, l) in r.get_contents().iter().enumerate() {
-        print!("{}: ", i);
-        for word in l {
-            print!("{} ", word);
-        }
-        println!("")
+    t.tokenize(r.read_and_parse().get_contents().clone());
+
+    for token in t.get_tokens() {
+        println!("{:?}", token);
     }
 }
