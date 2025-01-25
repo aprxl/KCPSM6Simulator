@@ -1,4 +1,9 @@
-add s1, s2
-add s2, 04
-add s3, 55'd
-add s4, 00010001'b
+constant const, 01
+
+main:
+  sub s1, 01
+  sub s1, s2
+sub:
+  sub s2, s2
+  return nz
+

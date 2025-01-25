@@ -4,7 +4,7 @@ use crate::Reader;
 pub enum NumberType {
     Decimal,
     Hexadecimal,
-    Binary
+    Binary,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -12,7 +12,7 @@ pub enum ConditionType {
     IfZero,
     IfNonZero,
     IfCarry,
-    IfNonCarry
+    IfNonCarry,
 }
 
 #[derive(Debug, Clone)]
@@ -23,13 +23,17 @@ pub enum Token {
     Register(u8),
     DerefRegister(u8),
     Number(u32, NumberType),
+    Address(u32),
     Condition(ConditionType),
+    ConstantDiretive,
+    AddressDiretive,
+    NameregDiretive,
     Comma,
-    EndOfLine
+    EndOfLine,
 }
 
 pub struct Tokenizer {
-    tokens: Vec<Token>
+    tokens: Vec<Token>,
 }
 
 // Found Char::is_digit to be a better solution.
@@ -49,36 +53,9 @@ fn is_str_instruction(word: &String) -> bool {
     // TODO: There are other "instructions" but I will be adding them later.
     // E.g. RETURNI ENABLE/DISABLE, ADDRESS, CONSTANT etc.
     let instructions: Vec<&str> = vec![
-        "add",
-        "addcy",
-        "address",
-        "and",
-        "call",
-        "compare",
-        "constant",
-        "fetch",
-        "input",
-        "jump",
-        "load",
-        "namereg",
-        "or",
-        "output",
-        "return",
-        "rl",
-        "rr",
-        "sl0",
-        "sl1",
-        "sla",
-        "slx",
-        "sr0",
-        "sr1",
-        "sra",
-        "srx",
-        "store",
-        "sub",
-        "subcy",
-        "test",
-        "xor"
+        "add", "addcy", "address", "and", "call", "compare", "constant", "fetch", "input", "jump",
+        "load", "namereg", "or", "output", "return", "rl", "rr", "sl0", "sl1", "sla", "slx", "sr0",
+        "sr1", "sra", "srx", "store", "sub", "subcy", "test", "xor",
     ];
 
     instructions.contains(&word.as_str())
@@ -90,9 +67,17 @@ fn is_str_label(word: &String) -> bool {
 
 fn is_str_hex_number(word: &String) -> bool {
     if word.len() == 2 {
-        return word
-            .chars()
-            .all(|c| c.is_digit(16));
+        return word.chars().all(|c| c.is_digit(16));
+    }
+
+    false
+}
+
+fn is_str_hex_address(word: &String) -> bool {
+    // TODO: This can cause issues with identifiers that are three letters long and
+    // characters range from 'a' to 'f'. E.g.: 'abc', 'def' etc.
+    if word.len() == 3 {
+        return word.chars().all(|c| c.is_digit(16));
     }
 
     false
@@ -101,10 +86,11 @@ fn is_str_hex_number(word: &String) -> bool {
 fn is_str_binary_number(word: &String) -> bool {
     // Now checking for binary literals
     if word.ends_with("'b") {
-        return word.len() == 10 && word
-            .chars()
-            .take(word.len() - 2) // Make sure that the last two characters are not included.
-            .all(|c| c.is_digit(2));
+        return word.len() == 10
+            && word
+                .chars()
+                .take(word.len() - 2) // Make sure that the last two characters are not included.
+                .all(|c| c.is_digit(2));
     }
 
     false
@@ -156,9 +142,7 @@ fn is_str_deref_register(word: &String) -> bool {
 
 impl Tokenizer {
     pub fn new() -> Tokenizer {
-        Tokenizer {
-            tokens: Vec::new()
-        }
+        Tokenizer { tokens: Vec::new() }
     }
 
     pub fn tokenize(&mut self, file_contents: Vec<Vec<String>>) -> &mut Tokenizer {
@@ -171,42 +155,47 @@ impl Tokenizer {
 
                 if word == "," {
                     self.tokens.push(Token::Comma);
-                }
-                
-                else if word.to_lowercase() == "c" {
+                } else if word.to_lowercase() == "c" {
                     self.tokens.push(Token::Condition(ConditionType::IfCarry));
-                }
-
-                else if word.to_lowercase() == "nc" {
-                    self.tokens.push(Token::Condition(ConditionType::IfNonCarry));
-                }
-
-                else if word.to_lowercase() == "z" {
+                } else if word.to_lowercase() == "nc" {
+                    self.tokens
+                        .push(Token::Condition(ConditionType::IfNonCarry));
+                } else if word.to_lowercase() == "z" {
                     self.tokens.push(Token::Condition(ConditionType::IfZero));
-                }
-
-                else if word.to_lowercase() == "nz" {
+                } else if word.to_lowercase() == "nz" {
                     self.tokens.push(Token::Condition(ConditionType::IfNonZero));
-                }
-
-                else if is_str_instruction(&word) {
+                } else if word.to_lowercase() == "constant" {
+                    self.tokens.push(Token::ConstantDiretive)
+                } else if word.to_lowercase() == "address" {
+                    self.tokens.push(Token::AddressDiretive);
+                } else if word.to_lowercase() == "namereg" {
+                    self.tokens.push(Token::NameregDiretive);
+                } else if is_str_instruction(&word) {
                     self.tokens.push(Token::Instruction(word.clone()));
-                }
-
-                else if is_str_label(&word) {
-                    self.tokens.push(Token::Label(word[0..word.len()-1].to_string()));
-                }
-
-                else if is_str_hex_number(&word) {
+                } else if is_str_label(&word) {
+                    self.tokens
+                        .push(Token::Label(word[0..word.len() - 1].to_string()));
+                } else if is_str_hex_number(&word) {
                     let number = u32::from_str_radix(word.as_str(), 16);
 
                     match number {
-                        Ok(number) => self.tokens.push(Token::Number(number, NumberType::Hexadecimal)),
-                        Err(_) => panic!("Unable to parse {} number, at line {}!", word, line_number),
+                        Ok(number) => self
+                            .tokens
+                            .push(Token::Number(number, NumberType::Hexadecimal)),
+                        Err(_) => {
+                            panic!("Unable to parse {} number, at line {}!", word, line_number)
+                        }
                     }
-                }
+                } else if is_str_hex_address(&word) {
+                    let number = u32::from_str_radix(word.as_str(), 16);
 
-                else if is_str_binary_number(&word) {
+                    match number {
+                        Ok(number) => self.tokens.push(Token::Address(number)),
+                        Err(_) => {
+                            panic!("Unable to parse {} number, at line {}!", word, line_number)
+                        }
+                    }
+                } else if is_str_binary_number(&word) {
                     // Remove the last two characters of literal
                     // E.g. "00010001'b" becomes "00010001"
                     let literal: &str = &word[..word.len() - 2];
@@ -215,16 +204,19 @@ impl Tokenizer {
                     match number {
                         Ok(number) => {
                             if number > 255 {
-                                println!("WARNING: Possible overflow on {} ({}), at line {}!", number, literal, line_number);
+                                println!(
+                                    "WARNING: Possible overflow on {} ({}), at line {}!",
+                                    number, literal, line_number
+                                );
                             }
 
                             self.tokens.push(Token::Number(number, NumberType::Binary))
-                        },
-                        Err(_) => panic!("Unable to parse {} number, at line {}!", word, line_number),
+                        }
+                        Err(_) => {
+                            panic!("Unable to parse {} number, at line {}!", word, line_number)
+                        }
                     }
-                }
-
-                else if is_str_decimal_number(&word) {
+                } else if is_str_decimal_number(&word) {
                     // Remove the last two characters of literal
                     // E.g. "1234'd" becomes "1234"
                     let literal: &str = &word[..word.len() - 2];
@@ -233,40 +225,43 @@ impl Tokenizer {
                     match number {
                         Ok(number) => {
                             if number > 255 {
-                                println!("WARNING: Possible overflow on {}, at line {}!", number, line_number);
+                                println!(
+                                    "WARNING: Possible overflow on {}, at line {}!",
+                                    number, line_number
+                                );
                             }
 
                             self.tokens.push(Token::Number(number, NumberType::Decimal))
-                        },
-                        Err(_) => panic!("Unable to parse {} number, at line {}!", word, line_number),
+                        }
+                        Err(_) => {
+                            panic!("Unable to parse {} number, at line {}!", word, line_number)
+                        }
                     }
-                }
-
-                else if is_str_register(&word) {
+                } else if is_str_register(&word) {
                     // Remove the first letter 's' from the register to access the number.
                     // E.g. 's3' reffers to the 4th (starting from 0) register.
                     let number = u8::from_str_radix(&word[1..], 16);
 
                     match number {
                         Ok(number) => self.tokens.push(Token::Register(number)),
-                        Err(_) => panic!("Unable to parse {} register, at line {}!", word, line_number),
+                        Err(_) => panic!(
+                            "Unable to parse {} register, at line {}!",
+                            word, line_number
+                        ),
                     }
-                }
-
-                else if is_str_deref_register(&word) {
+                } else if is_str_deref_register(&word) {
                     // Remove the leading and trailing parentheses, and first letter 's' from the register to access the number.
                     // E.g. '(s3)' reffers to the 4th (starting from 0) register.
                     let number = u8::from_str_radix(&word[2..3], 16);
 
                     match number {
                         Ok(number) => self.tokens.push(Token::DerefRegister(number)),
-                        Err(_) => panic!("Unable to parse {} register, at line {}!", word, line_number),
+                        Err(_) => panic!(
+                            "Unable to parse {} register, at line {}!",
+                            word, line_number
+                        ),
                     }
-                }
-
-                else {
-                    // We don't know what this is (could be a constant, jump label, another identifier etc.)
-                    // but it's not the Tokenizer's job to tell right from wrong.
+                } else {
                     self.tokens.push(Token::Word(word.clone()));
                 }
             }
@@ -281,3 +276,4 @@ impl Tokenizer {
         &self.tokens
     }
 }
+

@@ -1,4 +1,7 @@
-use std::{fs::File, io::{BufRead, BufReader}};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
 fn split_inclusive(input: &str, delimiter: char) -> Vec<String> {
     let mut tokens = Vec::new();
@@ -36,20 +39,19 @@ fn remove_after_delimiter(input: String, delimiter: char) -> String {
 #[derive(Debug)]
 pub struct Reader {
     file: String,
-    contents: Vec<Vec<String>>
+    contents: Vec<Vec<String>>,
 }
 
 impl Reader {
     pub fn new(file: &str) -> Reader {
         Reader {
             file: file.into(),
-            contents: Vec::new()
+            contents: Vec::new(),
         }
     }
 
     pub fn read_and_split(&mut self) -> &mut Reader {
-        let file = File::open(self.file.clone())
-            .expect("Unable to open the file.");
+        let file = File::open(self.file.clone()).expect("Unable to open the file.");
 
         let reader = BufReader::new(file);
 
@@ -61,6 +63,10 @@ impl Reader {
             .collect();
 
         for line in lines {
+            if line.is_empty() || line.chars().all(|c| c.is_whitespace()) {
+                continue;
+            }
+
             // Remove all comments from the code.
             let line = remove_after_delimiter(line, ';');
 
@@ -87,3 +93,4 @@ impl Reader {
         &self.contents
     }
 }
+
