@@ -47,7 +47,7 @@ impl Reader {
         }
     }
 
-    pub fn read_and_parse(&mut self) -> &mut Reader {
+    pub fn read_and_split(&mut self) -> &mut Reader {
         let file = File::open(self.file.clone())
             .expect("Unable to open the file.");
 
@@ -64,7 +64,7 @@ impl Reader {
             // Remove all comments from the code.
             let line = remove_after_delimiter(line, ';');
 
-            let mut tokens: Vec<String> = vec![];
+            let mut tokens: Vec<String> = Vec::new();
 
             // Split each line by whitespace, convert them into strings and collect them into another string Vector.
             let words: Vec<String> = line
@@ -83,7 +83,7 @@ impl Reader {
         self
     }
 
-    pub const fn get_contents(&self) -> &Vec<Vec<String>> {
+    pub fn get_contents(&self) -> &Vec<Vec<String>> {
         &self.contents
     }
 }

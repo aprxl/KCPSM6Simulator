@@ -1,4 +1,4 @@
-use interpreter::{reader::*, tokenizer::*};
+use interpreter::{reader::*, tokenizer::*, parser::*};
 
 pub mod interpreter;
 
@@ -8,10 +8,13 @@ fn main() {
     );
 
     let mut t = Tokenizer::new();
+    
+    let mut p = Parser::new();
 
-    t.tokenize(r.read_and_parse().get_contents().clone());
+    t.tokenize(r.read_and_split().get_contents().clone());
+    p.parse(t.get_tokens().clone());
 
-    for token in t.get_tokens() {
-        println!("{:?}", token);
+    for instr in p.get_instructions() {
+        println!("{:?}", instr);
     }
 }

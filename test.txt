@@ -1,5 +1,4 @@
-main:
-  add s1, 01 ; This is a comment
-  sub s1, ff ; This is a comment as well!
-  xor s2, 54'd
-  xor sF, 00010101'b
+add s1, s2
+add s2, 04
+add s3, 55'd
+add s4, 00010001'b
