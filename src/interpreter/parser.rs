@@ -41,7 +41,7 @@ pub enum Instruction {
 }
 
 pub struct Parser {
-    instructions: Vec<Instruction>,
+    instructions: Vec<(usize, Instruction)>,
     labels: Vec<Label>,
     constants: Vec<Constant>,
     aliases: Vec<Alias>,
@@ -56,7 +56,7 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Register(_) => 'r',
             Token::DerefRegister(_) => 'd',
             Token::Number(_, _) => 'n',
-            Token::Address(_) => 'a',
+            Token::Address(_) | Token::Label(_) => 'a',
             Token::Condition(_) => 'c',
             Token::Comma => 'C',
             Token::EndOfLine => 'e',
@@ -162,23 +162,32 @@ impl Parser {
             .map(|list| list.to_vec())
             .collect();
 
-        for (line_number, line) in tokens_per_line.iter().enumerate() {
-            let instr = self.parse_line(line, line_number);
+        let mut instruction_address = 0;
+
+        for line in tokens_per_line {
+            let (new_address, instr) = self.parse_line(&line, instruction_address);
 
             match instr {
                 Instruction::None => continue,
-                _ => self.instructions.push(instr),
+                _ => {
+                    self.instructions.push((instruction_address, instr));
+                    instruction_address = new_address + 1;
+                }
             }
         }
 
         self
     }
 
-    fn parse_line(&mut self, token_list: &Vec<Token>, line_number: usize) -> Instruction {
-        let token_list = self.parse_diretives_and_update_tokens(token_list, line_number);
+    fn parse_line(
+        &mut self,
+        token_list: &Vec<Token>,
+        instruction_address: usize,
+    ) -> (usize, Instruction) {
+        let token_list = self.parse_diretives_and_update_tokens(token_list, instruction_address);
 
         if token_list.is_empty() {
-            return Instruction::None;
+            return (instruction_address, Instruction::None);
         }
 
         let syntax_pattern = convert_tokens_into_string(&token_list);
@@ -187,31 +196,42 @@ impl Parser {
         // Picoblaze assembly is very simple, so we don't need a super
         // sofisticated parser and this will suffice.
         match syntax_pattern.as_str() {
-            "i" => instr_only(&token_list),
-            "ic" => instr_condition(&token_list),
-            "irCr" => instr_reg_reg(&token_list),
-            "irCn" => instr_reg_num(&token_list),
+            "i" => (instruction_address, instr_only(&token_list)),
+            "ic" => (instruction_address, instr_condition(&token_list)),
+            "irCr" => (instruction_address, instr_reg_reg(&token_list)),
+            "irCn" => (instruction_address, instr_reg_num(&token_list)),
             _ => {
                 eprintln!(
                     "Failed to parse line {} (pattern {})",
-                    line_number, syntax_pattern
+                    instruction_address, syntax_pattern
                 );
 
-                Instruction::None
+                (instruction_address, Instruction::None)
             }
         }
     }
 
-    fn add_label(&mut self, token: &Token, line_number: usize) {
+    fn add_label(&mut self, token: &Token, instruction_address: usize) {
         if let Token::Label(label) = token {
-            self.labels.push(Label(label.clone(), line_number as u32));
+            if self.labels.iter().any(|l| {
+                if let Label(name, i) = l {
+                    return name == label;
+                }
+
+                false
+            }) {
+                panic!(
+                    "There is already a label called '{}' (line {})!",
+                    label, instruction_address
+                );
+            }
+
+            self.labels
+                .push(Label(label.clone(), instruction_address as u32));
         }
     }
 
     fn add_constant(&mut self, tokens: &Vec<Token>) {
-        for t in tokens {
-            println!("{:?}", t);
-        }
         match tokens.as_slice() {
             [Token::ConstantDiretive, Token::Word(constant_name), _, Token::Number(value, _)] => {
                 self.constants.push(Constant(constant_name.clone(), *value));
@@ -223,25 +243,27 @@ impl Parser {
     fn parse_diretives_and_update_tokens(
         &mut self,
         token_list: &Vec<Token>,
-        line_number: usize,
+        instruction_address: usize,
     ) -> Vec<Token> {
         let mut updated_tokens: Vec<Token> = Vec::new();
 
         for token in token_list {
             match token {
-                Token::Label(_) => self.add_label(token, line_number),
+                Token::Label(_) => self.add_label(token, instruction_address),
                 Token::ConstantDiretive => {
                     self.add_constant(token_list);
                     break;
                 }
-                _ => updated_tokens.push(token.clone()),
+                _ => {
+                    updated_tokens.push(token.clone());
+                }
             }
         }
 
         updated_tokens
     }
 
-    pub fn get_instructions(&self) -> &Vec<Instruction> {
+    pub fn get_instructions(&self) -> &Vec<(usize, Instruction)> {
         &self.instructions
     }
 

@@ -190,7 +190,16 @@ impl Tokenizer {
                     let number = u32::from_str_radix(word.as_str(), 16);
 
                     match number {
-                        Ok(number) => self.tokens.push(Token::Address(number)),
+                        Ok(number) => {
+                            // Only accept numbers lower than 1023 (3FF).
+                            if number <= 1023 {
+                                self.tokens.push(Token::Address(number));
+                            }
+                            // Otherwise, this must be an identifier of sorts (?).
+                            else {
+                                self.tokens.push(Token::Word(word.clone()));
+                            }
+                        }
                         Err(_) => {
                             panic!("Unable to parse {} number, at line {}!", word, line_number)
                         }

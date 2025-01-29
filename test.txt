@@ -1,8 +1,9 @@
-constant const, 01
+constant abc, 01
 
 main:
   sub s1, 01
   sub s1, s2
+
 sub:
   sub s2, s2
   return nz

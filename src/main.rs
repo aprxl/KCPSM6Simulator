@@ -12,8 +12,8 @@ fn main() {
     t.tokenize(r.read_and_split().get_contents().clone());
     p.parse(t.get_tokens().clone());
 
-    for instr in p.get_instructions() {
-        println!("{:?}", instr);
+    for (addr, instr) in p.get_instructions() {
+        println!("0x{} {:?}", addr, instr);
     }
 
     for label in p.get_labels() {
