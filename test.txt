@@ -1,5 +1,6 @@
 constant abc, 01
 
+main_xyz:
 main:
   sub s1, 01
   sub s1, s2
