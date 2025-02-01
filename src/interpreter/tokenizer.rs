@@ -53,9 +53,44 @@ fn is_str_instruction(word: &String) -> bool {
     // TODO: There are other "instructions" but I will be adding them later.
     // E.g. RETURNI ENABLE/DISABLE, ADDRESS, CONSTANT etc.
     let instructions: Vec<&str> = vec![
-        "add", "addcy", "address", "and", "call", "compare", "constant", "fetch", "input", "jump",
-        "load", "namereg", "or", "output", "return", "rl", "rr", "sl0", "sl1", "sla", "slx", "sr0",
-        "sr1", "sra", "srx", "store", "sub", "subcy", "test", "xor",
+        "add",
+        "addcy",
+        "address",
+        "and",
+        "call",
+        "call@",
+        "compare",
+        "comparecy",
+        "constant",
+        "fetch",
+        "hwbuild",
+        "input",
+        "jump",
+        "jump@",
+        "load",
+        "load&return",
+        "namereg",
+        "or",
+        "output",
+        "outputk",
+        "return",
+        "rl",
+        "rr",
+        "sl0",
+        "sl1",
+        "sla",
+        "slx",
+        "sr0",
+        "sr1",
+        "sra",
+        "srx",
+        "star",
+        "store",
+        "sub",
+        "subcy",
+        "test",
+        "testcy",
+        "xor",
     ];
 
     instructions.contains(&word.as_str())
@@ -285,4 +320,3 @@ impl Tokenizer {
         &self.tokens
     }
 }
-

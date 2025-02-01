@@ -2,10 +2,58 @@ constant abc, 01
 
 main_xyz:
 main:
-  sub s1, 01
-  sub s1, s2
+  add s1, s1
+  add s1, 01
+  add s1, 2'd
+  add s1, 00000011'b
 
-sub:
-  sub s2, s2
+addcy_:
+  addcy s1, s1
+  addcy s1, 01
+
+and_:
+  and s1, s1
+  and s1, 01
+
+compare_:
+  compare s1, s1
+  compare s1, 01
+
+load_:
+  load s1, s1
+  load s1, 01
+
+or_:
+  or s1, s1
+  or s1, 01
+
+sub_:
+  sub s1, s1
+  sub s1, 01
+
+subcy_:
+  subcy s1, s1
+  subcy s1, 01
+
+test_:
+  test s1, s1
+  test s1, 01
+
+xor_:
+  xor s1, s1
+  xor s1, 01
+
+fetch_:
+  fetch s1, 01
+
+input_:
+  input s1, 01
+
+output_:
+  output s1, 01
+
+store_:
+  store s1, 01
+
   return nz
 
