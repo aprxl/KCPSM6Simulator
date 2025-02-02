@@ -456,7 +456,15 @@ impl Parser {
             [Token::ConstantDirective, Token::Word(constant_name), _, Token::Number(value, _)] => {
                 self.constants.push(Constant(constant_name.clone(), *value));
             }
-            _ => unreachable!(),
+
+            [Token::ConstantDirective, Token::Word(constant_name), _, Token::Word(word)] => {
+                if let Some(Constant(_, value)) = self.find_constant(word) {
+                    self.constants.push(Constant(constant_name.clone(), value));
+                } else {
+                    panic!("Unable to parse constant.");
+                }
+            }
+            _ => unreachable!("Constant"),
         }
     }
 
@@ -469,14 +477,29 @@ impl Parser {
             [Token::NameregDirective, Token::Register(register), _, Token::Word(alias_name)] => {
                 self.aliases.push(Alias(alias_name.clone(), *register));
             }
-            _ => unreachable!(),
+
+            [Token::NameregDirective, Token::Word(other_alias), _, Token::Word(alias_name)] => {
+                if let Some(Alias(_, register)) = self.find_alias(other_alias) {
+                    self.aliases.push(Alias(alias_name.clone(), register));
+                } else {
+                    panic!("Unable to parse alias.");
+                }
+            }
+            _ => unreachable!("Alias"),
         }
     }
 
     fn update_address(&mut self, tokens: &Vec<Token>) -> usize {
         match tokens.as_slice() {
             [Token::AddressDirective, Token::Address(addr)] => *addr as usize,
-            _ => unreachable!(),
+            [Token::AddressDirective, Token::Word(word)] => {
+                if let Some(Constant(_, addr)) = self.find_constant(word) {
+                    return addr as usize;
+                } else {
+                    panic!("Unable to parse address.");
+                }
+            }
+            _ => unreachable!("Address"),
         }
     }
 
