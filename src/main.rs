@@ -3,7 +3,7 @@ use interpreter::{parser::*, reader::*, tokenizer::*};
 pub mod interpreter;
 
 fn main() {
-    let mut r = Reader::new("test2.txt");
+    let mut r = Reader::new("test.txt");
 
     let mut t = Tokenizer::new();
 
@@ -13,7 +13,7 @@ fn main() {
     p.parse(t.get_tokens().clone());
 
     for (addr, instr) in p.get_instructions() {
-        println!("0x{} {:?}", addr, instr);
+        println!("0x{:x} ({}) {:?}", addr, addr, instr);
     }
 
     for label in p.get_labels() {

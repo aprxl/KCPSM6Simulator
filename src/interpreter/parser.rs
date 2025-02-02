@@ -10,6 +10,7 @@ pub struct Constant(String, u32);
 pub struct Alias(String, u8);
 
 #[derive(Debug)]
+#[rustfmt::skip]
 pub enum Instruction {
     None,
     Add { lhs: u8, rhs: u8 },
@@ -18,6 +19,8 @@ pub enum Instruction {
     AddCarryConstant { lhs: u8, rhs: u32 },
     And { lhs: u8, rhs: u8 },
     AndConstant { lhs: u8, rhs: u32 },
+    Call { address: u32 },
+    CallConditional { condition: ConditionType, address: u32 },
     Compare { lhs: u8, rhs: u8 },
     CompareConstant { lhs: u8, rhs: u32 },
     CompareCarry { lhs: u8, rhs: u8 },
@@ -27,6 +30,9 @@ pub enum Instruction {
     HardwareBuild { register: u8 },
     InputConstant { lhs: u8, rhs: u32 },
     InputDeref { lhs: u8, rhs: u8 },
+    Interrupt { state: bool },
+    Jump { address: u32 },
+    JumpConditional { condition: ConditionType, address: u32 },
     Load { lhs: u8, rhs: u8 },
     LoadAndReturn { lhs: u8, rhs: u32 },
     LoadConstant { lhs: u8, rhs: u32 },
@@ -35,8 +41,10 @@ pub enum Instruction {
     OutputConstant { lhs: u8, rhs: u32 },
     OutputDoubleConstant { lhs: u32, rhs: u32 },
     OutputDeref { lhs: u8, rhs: u8 },
+    Regbank { selection: char },
     Return,
     ReturnCondition { condition: ConditionType },
+    ReturnInterrupt { state: bool },
     RotateLeft { register: u8 },
     RotateRight { register: u8 },
     ShiftLeftZero { register: u8 },
@@ -230,6 +238,86 @@ fn instr_num_num(token_list: &Vec<Token>) -> Instruction {
     }
 }
 
+fn instr_addr(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::Address(address)] => {
+            let address = *address;
+
+            match instr.as_str() {
+                "jump" => Instruction::Jump { address },
+                "call" => Instruction::Call { address },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
+fn instr_condition_addr(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::Condition(condition), _, Token::Address(address)] => {
+            let condition = *condition;
+            let address = *address;
+
+            match instr.as_str() {
+                "jump" => Instruction::JumpConditional { condition, address },
+                "call" => Instruction::CallConditional { condition, address },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
+fn word_word(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Word(w1), Token::Word(w2)] => match w1.to_lowercase().as_str() {
+            "regbank" => {
+                let w2 = w2.to_lowercase();
+
+                if w2 == "a" {
+                    return Instruction::Regbank { selection: 'a' };
+                } else if w2 == "b" {
+                    return Instruction::Regbank { selection: 'b' };
+                } else {
+                    panic!("Unable to parse line!")
+                }
+            }
+
+            "returni" => {
+                let w2 = w2.to_lowercase();
+
+                if w2 == "disable" {
+                    return Instruction::ReturnInterrupt { state: false };
+                } else if w2 == "enable" {
+                    return Instruction::ReturnInterrupt { state: true };
+                } else {
+                    panic!("Unable to parse line!")
+                }
+            }
+
+            "enable" | "disable" => {
+                let w1 = w1.to_lowercase();
+                let w2 = w2.to_lowercase();
+
+                if w2 == "interrupt" {
+                    if w1 == "enable" {
+                        return Instruction::Interrupt { state: true };
+                    } else if w1 == "disable" {
+                        return Instruction::Interrupt { state: false };
+                    } else {
+                        panic!("Unable to parse line!");
+                    }
+                } else {
+                    panic!("Unable to parse line!");
+                }
+            }
+            _ => panic!("Unable to parse line!"),
+        },
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {
@@ -317,6 +405,8 @@ impl Parser {
         // I'm so not proud of this, but we ball.
         // Picoblaze assembly is very simple, so we don't need a super
         // sofisticated parser and this will suffice.
+        //
+        // TODO: Implement support for call@ (sx, sy) and jump@ (sx, sy)
         match syntax_pattern.as_str() {
             "i" => (updated_addr, instr_only(&token_list)),
             "ic" => (updated_addr, instr_condition(&token_list)),
@@ -325,6 +415,9 @@ impl Parser {
             "irCn" => (updated_addr, instr_reg_num(&token_list)),
             "irCd" => (updated_addr, instr_reg_deref(&token_list)),
             "inCn" => (updated_addr, instr_num_num(&token_list)),
+            "ia" => (updated_addr, instr_addr(&token_list)),
+            "icCa" => (updated_addr, instr_condition_addr(&token_list)),
+            "ww" => (updated_addr, word_word(&token_list)),
             _ => {
                 eprintln!(
                     "Failed to parse line {} (pattern {})",
@@ -417,11 +510,13 @@ impl Parser {
                     self.add_alias(token_list);
 
                     is_valid_instruction = false;
+                    break;
                 }
                 Token::AddressDirective => {
                     updated_addr = self.update_address(token_list);
 
                     is_valid_instruction = false;
+                    break;
                 }
                 _ => {
                     continue;
