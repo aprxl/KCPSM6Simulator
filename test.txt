@@ -55,5 +55,17 @@ output_:
 store_:
   store s1, 01
 
+star_:
+  star s1, s1
+  star s1, 01
+
+comparecy_:
+  comparecy s1, s1
+  comparecy s1, 01
+
+testcy_:
+  testcy s1, s1
+  testcy s1, 01
+
   return nz
 

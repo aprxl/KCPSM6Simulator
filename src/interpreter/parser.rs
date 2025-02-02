@@ -20,6 +20,8 @@ pub enum Instruction {
     AndConstant { lhs: u8, rhs: u32 },
     Compare { lhs: u8, rhs: u8 },
     CompareConstant { lhs: u8, rhs: u32 },
+    CompareCarry { lhs: u8, rhs: u8 },
+    CompareCarryConstant { lhs: u8, rhs: u32 },
     FetchConstant { lhs: u8, rhs: u32 },
     InputConstant { lhs: u8, rhs: u32 },
     Load { lhs: u8, rhs: u8 },
@@ -30,12 +32,16 @@ pub enum Instruction {
     Return,
     ReturnCondition { condition: ConditionType },
     StoreConstant { lhs: u8, rhs: u32 },
+    Star { lhs: u8, rhs: u8 },
+    StarConstant { lhs: u8, rhs: u32 },
     Subtract { lhs: u8, rhs: u8 },
     SubtractConstant { lhs: u8, rhs: u32 },
     SubtractCarry { lhs: u8, rhs: u8 },
     SubtractCarryConstant { lhs: u8, rhs: u32 },
     Test { lhs: u8, rhs: u8 },
     TestConstant { lhs: u8, rhs: u32 },
+    TestCarry { lhs: u8, rhs: u8 },
+    TestCarryConstant { lhs: u8, rhs: u32 },
     Xor { lhs: u8, rhs: u8 },
     XorConstant { lhs: u8, rhs: u32 },
 }
@@ -102,11 +108,14 @@ fn instr_reg_reg(token_list: &Vec<Token>) -> Instruction {
                 "addcy" => Instruction::AddCarry { lhs, rhs },
                 "and" => Instruction::And { lhs, rhs },
                 "compare" => Instruction::Compare { lhs, rhs },
+                "comparecy" => Instruction::CompareCarry { lhs, rhs },
                 "load" => Instruction::Load { lhs, rhs },
                 "or" => Instruction::Or { lhs, rhs },
+                "star" => Instruction::Star { lhs, rhs },
                 "sub" => Instruction::Subtract { lhs, rhs },
                 "subcy" => Instruction::SubtractCarry { lhs, rhs },
                 "test" => Instruction::Test { lhs, rhs },
+                "testcy" => Instruction::TestCarry { lhs, rhs },
                 "xor" => Instruction::Xor { lhs, rhs },
                 _ => panic!("Unable to parse line!"),
             }
@@ -125,15 +134,18 @@ fn instr_reg_num(token_list: &Vec<Token>) -> Instruction {
                 "addcy" => Instruction::AddCarryConstant { lhs, rhs },
                 "and" => Instruction::AndConstant { lhs, rhs },
                 "compare" => Instruction::CompareConstant { lhs, rhs },
+                "comparecy" => Instruction::CompareCarryConstant { lhs, rhs },
                 "fetch" => Instruction::FetchConstant { lhs, rhs },
                 "input" => Instruction::InputConstant { lhs, rhs },
                 "load" => Instruction::LoadConstant { lhs, rhs },
                 "or" => Instruction::OrConstant { lhs, rhs },
                 "output" => Instruction::OutputConstant { lhs, rhs },
                 "store" => Instruction::StoreConstant { lhs, rhs },
+                "star" => Instruction::StarConstant { lhs, rhs },
                 "sub" => Instruction::SubtractConstant { lhs, rhs },
                 "subcy" => Instruction::SubtractCarryConstant { lhs, rhs },
                 "test" => Instruction::TestConstant { lhs, rhs },
+                "testcy" => Instruction::TestCarryConstant { lhs, rhs },
                 "xor" => Instruction::XorConstant { lhs, rhs },
                 _ => panic!("Unable to parse line!"),
             }
@@ -213,12 +225,9 @@ impl Parser {
 
     fn add_label(&mut self, token: &Token, instruction_address: usize) {
         if let Token::Label(label) = token {
-            if self.labels.iter().any(|l| {
-                if let Label(name, i) = l {
-                    return name == label;
-                }
-
-                false
+            if let Some(_) = self.labels.iter().find(|l| {
+                let Label(name, _) = l;
+                label == name
             }) {
                 panic!(
                     "There is already a label called '{}' (line {})!",
