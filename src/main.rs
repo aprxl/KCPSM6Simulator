@@ -23,4 +23,8 @@ fn main() {
     for con in p.get_constants() {
         println!("{:?}", con);
     }
+
+    for al in p.get_aliases() {
+        println!("{:?}", al);
+    }
 }

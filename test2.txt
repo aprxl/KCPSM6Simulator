@@ -16,10 +16,10 @@ main:
 	LOAD sD, s0 ; Setup call parameters
 	LOAD sE, s1
 
-	XOR s1, s1
+	CALL max
 	LOAD s2, sF ; s2: x = max(a, b)
 
-	XOR s1, s1
+	CALL min
 	LOAD s3, sF ; s3: y = min(a, b)
 
 	main_shift:
@@ -38,10 +38,10 @@ main:
 
 	LOAD sD, s6 ; sF: t7 = max(t6, x)
 	LOAD sE, s2
-	XOR s1, s1
+	CALL max
 
 	OUTPUT sF, led
-	XOR s1, s1
+	JUMP main
 
 ; Computa o valor maximo entre dois numeros.
 ; @in 	sD 	(Primeiro numero)
@@ -51,12 +51,12 @@ max:
 	LOAD sF, sD ; Assume sD is the maximum
 	COMPARE sD, sE
 
-	XOR s1, s1
-	;JUMP max_ret   ; Otherwise, sD >= sE
+	JUMP C, max_low ; Carry flag means sD < sE
+	JUMP max_ret   ; Otherwise, sD >= sE
 
 	max_low:
 	LOAD sF, sE
-	;JUMP max_ret
+	JUMP max_ret
 
 	max_ret:
 	RETURN
@@ -69,13 +69,15 @@ min:
 	LOAD sF, sD		 ; Assume sD is the minimum
 	COMPARE sD, sE
 
-	XOR s1, s1
-	;JUMP min_low   ; Otherwise, sD >= sE
+	JUMP C, min_ret ; Carry flag means sD < sE
+	JUMP min_low   ; Otherwise, sD >= sE
 
 	min_low:
 	LOAD sF, sE
-	XOR s1, s1
+	JUMP min_ret
 
 	min_ret:
 	RETURN
+
+
 

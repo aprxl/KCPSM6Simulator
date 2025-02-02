@@ -540,6 +540,21 @@ impl Parser {
             return Token::Number(value, crate::NumberType::Decimal);
         }
 
+        if let Some(Alias(_, reg)) = self.find_alias(word) {
+            return Token::Register(reg);
+        }
+
+        // Remove trailing and leading parentheses to make sure DerefRegister's with an alias work.
+        let word = word
+            .clone()
+            .chars()
+            .filter(|c| *c != '(' && *c != ')')
+            .collect::<String>();
+
+        if let Some(Alias(_, reg)) = self.find_alias(&word) {
+            return Token::DerefRegister(reg);
+        }
+
         Token::Word(word.clone())
     }
 
@@ -611,6 +626,20 @@ impl Parser {
             .find(|c| {
                 let Constant(name, _) = c;
                 name == constant
+            })
+            .cloned()
+    }
+
+    pub fn get_aliases(&self) -> &Vec<Alias> {
+        &self.aliases
+    }
+
+    pub fn find_alias(&self, alias: &String) -> Option<Alias> {
+        self.aliases
+            .iter()
+            .find(|a| {
+                let Alias(name, _) = a;
+                name == alias
             })
             .cloned()
     }

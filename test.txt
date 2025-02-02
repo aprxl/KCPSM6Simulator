@@ -1,20 +1,6 @@
 constant abc, 01
+namereg s1, first
 
 main:
-  regbank a
-  test s1, s2
-  jump z, main2
-  regbank b
-  xor s1, 00
-  call nc, main2
-  enable interrupt
-
-address 100
-main2:
-  xor s3, s4
-  jump main
-  returni disable
-  call main2
-  returni enable
-  return
-  disable interrupt
+  xor first, abc
+  input s2, (first)
