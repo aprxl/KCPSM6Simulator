@@ -1,5 +1,3 @@
-use std::thread::current;
-
 use crate::{ConditionType, Token};
 
 #[derive(Debug, Clone)]
@@ -25,14 +23,17 @@ pub enum Instruction {
     CompareCarry { lhs: u8, rhs: u8 },
     CompareCarryConstant { lhs: u8, rhs: u32 },
     FetchConstant { lhs: u8, rhs: u32 },
+    FetchDeref { lhs: u8, rhs: u8 },
     HardwareBuild { register: u8 },
     InputConstant { lhs: u8, rhs: u32 },
+    InputDeref { lhs: u8, rhs: u8 },
     Load { lhs: u8, rhs: u8 },
     LoadAndReturn { lhs: u8, rhs: u32 },
     LoadConstant { lhs: u8, rhs: u32 },
     Or { lhs: u8, rhs: u8 },
     OrConstant { lhs: u8, rhs: u32 },
     OutputConstant { lhs: u8, rhs: u32 },
+    OutputDeref { lhs: u8, rhs: u8 },
     Return,
     ReturnCondition { condition: ConditionType },
     RotateLeft { register: u8 },
@@ -46,6 +47,7 @@ pub enum Instruction {
     ShiftRightCarry { register: u8 },
     ShiftRightArth { register: u8 },
     StoreConstant { lhs: u8, rhs: u32 },
+    StoreDeref { lhs: u8, rhs: u8 },
     Star { lhs: u8, rhs: u8 },
     StarConstant { lhs: u8, rhs: u32 },
     Subtract { lhs: u8, rhs: u8 },
@@ -193,6 +195,24 @@ fn instr_reg(token_list: &Vec<Token>) -> Instruction {
     }
 }
 
+fn instr_reg_deref(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::Register(lhs), _, Token::DerefRegister(rhs)] => {
+            let lhs = *lhs;
+            let rhs = *rhs;
+
+            match instr.as_str() {
+                "input" => Instruction::InputDeref { lhs, rhs },
+                "output" => Instruction::OutputDeref { lhs, rhs },
+                "fetch" => Instruction::FetchDeref { lhs, rhs },
+                "store" => Instruction::StoreDeref { lhs, rhs },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {
@@ -215,6 +235,15 @@ impl Parser {
 
         let mut instruction_address = 0;
 
+        // Run through the tokens once to find assembler diretives.
+        for line in tokens_per_line.clone() {
+            let new_address = self.parse_diretives(&line, instruction_address);
+            instruction_address = new_address + 1;
+        }
+
+        instruction_address = 0;
+
+        // Then parse the tokens for instructions.
         for line in tokens_per_line {
             let (new_address, instr) = self.parse_line(&line, instruction_address);
 
@@ -236,7 +265,7 @@ impl Parser {
         instruction_address: usize,
     ) -> (usize, Instruction) {
         let (updated_addr, token_list) =
-            self.parse_diretives_and_update_tokens(token_list, instruction_address);
+            self.ignore_diretives_and_update_tokens(token_list, instruction_address);
 
         if token_list.is_empty() {
             return (updated_addr, Instruction::None);
@@ -253,6 +282,7 @@ impl Parser {
             "ir" => (updated_addr, instr_reg(&token_list)),
             "irCr" => (updated_addr, instr_reg_reg(&token_list)),
             "irCn" => (updated_addr, instr_reg_num(&token_list)),
+            "irCd" => (updated_addr, instr_reg_deref(&token_list)),
             _ => {
                 eprintln!(
                     "Failed to parse line {} (pattern {})",
@@ -295,6 +325,19 @@ impl Parser {
         }
     }
 
+    fn add_alias(&mut self, tokens: &Vec<Token>) {
+        // TODO: It turns out namereg diretives are not creating aliases, but instead RENAMING a
+        // register. For example, if you do `namereg s1, first`, then `s1` is not longer "in the
+        // scope". Right now we're hoping that the user won't try to access a register by its
+        // original name after the namereg.
+        match tokens.as_slice() {
+            [Token::NameregDiretive, Token::Register(register), _, Token::Word(alias_name)] => {
+                self.aliases.push(Alias(alias_name.clone(), *register));
+            }
+            _ => unreachable!(),
+        }
+    }
+
     fn update_address(&mut self, tokens: &Vec<Token>) -> usize {
         match tokens.as_slice() {
             [Token::AddressDiretive, Token::Address(addr)] => *addr as usize,
@@ -302,7 +345,43 @@ impl Parser {
         }
     }
 
-    fn parse_diretives_and_update_tokens(
+    fn parse_diretives(&mut self, token_list: &Vec<Token>, instruction_address: usize) -> usize {
+        let mut updated_addr = instruction_address;
+        for token in token_list {
+            match token {
+                Token::Label(_) => self.add_label(token, instruction_address),
+                Token::ConstantDiretive => {
+                    self.add_constant(token_list);
+                    break;
+                }
+                Token::NameregDiretive => {
+                    self.add_alias(token_list);
+                }
+                Token::AddressDiretive => {
+                    updated_addr = self.update_address(token_list);
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
+
+        updated_addr
+    }
+
+    fn try_to_convert_word_into_token(&self, word: &String) -> Token {
+        if let Some(Label(_, addr)) = self.find_label(word) {
+            return Token::Address(addr);
+        }
+
+        if let Some(Constant(_, value)) = self.find_constant(word) {
+            return Token::Number(value, crate::NumberType::Decimal);
+        }
+
+        Token::Word(word.clone())
+    }
+
+    fn ignore_diretives_and_update_tokens(
         &mut self,
         token_list: &Vec<Token>,
         instruction_address: usize,
@@ -312,9 +391,8 @@ impl Parser {
 
         for token in token_list {
             match token {
-                Token::Label(_) => self.add_label(token, instruction_address),
-                Token::ConstantDiretive => {
-                    self.add_constant(token_list);
+                Token::Label(_) => continue,
+                Token::ConstantDiretive | Token::NameregDiretive => {
                     break;
                 }
                 Token::AddressDiretive => {
@@ -322,7 +400,13 @@ impl Parser {
                     break;
                 }
                 _ => {
-                    updated_tokens.push(token.clone());
+                    let mut final_token = token.clone();
+
+                    if let Token::Word(word) = final_token {
+                        final_token = self.try_to_convert_word_into_token(&word);
+                    }
+
+                    updated_tokens.push(final_token.clone());
                 }
             }
         }
@@ -338,7 +422,27 @@ impl Parser {
         &self.labels
     }
 
+    pub fn find_label(&self, label: &String) -> Option<Label> {
+        self.labels
+            .iter()
+            .find(|l| {
+                let Label(name, _) = l;
+                name == label
+            })
+            .cloned()
+    }
+
     pub fn get_constants(&self) -> &Vec<Constant> {
         &self.constants
+    }
+
+    pub fn find_constant(&self, constant: &String) -> Option<Constant> {
+        self.constants
+            .iter()
+            .find(|c| {
+                let Constant(name, _) = c;
+                name == constant
+            })
+            .cloned()
     }
 }

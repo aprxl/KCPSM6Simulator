@@ -4,6 +4,7 @@ main_xyz:
 main:
   add s1, s1
   add s1, 01
+  add s1, abc
   add s1, 2'd
   add s1, 00000011'b
 
@@ -44,15 +45,19 @@ xor_:
 
 fetch_:
   fetch s1, 01
+  fetch s1, (s2)
 
 input_:
   input s1, 01
+  input s1, (s2)
 
 output_:
   output s1, 01
+  output s1, (s2)
 
 store_:
   store s1, 01
+  store s1, (s2)
 
 star_:
   star s1, s1
@@ -80,5 +85,7 @@ shiftright:
   srx s1
   rr s1
 
+  hwbuild s2
+  load&return s1, 00
   return nz
 
