@@ -66,5 +66,19 @@ testcy_:
   testcy s1, s1
   testcy s1, 01
 
+shiftleft:
+  sl0 s1
+  sl1 s1
+  sla s1
+  slx s1
+  rl s1
+
+shiftright:
+  sr0 s1
+  sr1 s1
+  sra s1
+  srx s1
+  rr s1
+
   return nz
 

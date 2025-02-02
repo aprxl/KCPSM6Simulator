@@ -33,6 +33,16 @@ pub enum Instruction {
     OutputConstant { lhs: u8, rhs: u32 },
     Return,
     ReturnCondition { condition: ConditionType },
+    RotateLeft { register: u8 },
+    RotateRight { register: u8 },
+    ShiftLeftZero { register: u8 },
+    ShiftLeftOne { register: u8 },
+    ShiftLeftCarry { register: u8 },
+    ShiftLeftArth { register: u8 },
+    ShiftRightZero { register: u8 },
+    ShiftRightOne { register: u8 },
+    ShiftRightCarry { register: u8 },
+    ShiftRightArth { register: u8 },
     StoreConstant { lhs: u8, rhs: u32 },
     Star { lhs: u8, rhs: u8 },
     StarConstant { lhs: u8, rhs: u32 },
@@ -156,6 +166,29 @@ fn instr_reg_num(token_list: &Vec<Token>) -> Instruction {
     }
 }
 
+fn instr_reg(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::Register(register)] => {
+            let register = *register;
+
+            match instr.as_str() {
+                "sl0" => Instruction::ShiftLeftZero { register },
+                "sl1" => Instruction::ShiftLeftOne { register },
+                "sla" => Instruction::ShiftLeftArth { register },
+                "slx" => Instruction::ShiftLeftCarry { register },
+                "sr0" => Instruction::ShiftRightZero { register },
+                "sr1" => Instruction::ShiftRightOne { register },
+                "sra" => Instruction::ShiftRightArth { register },
+                "srx" => Instruction::ShiftRightCarry { register },
+                "rl" => Instruction::RotateLeft { register },
+                "rr" => Instruction::RotateRight { register },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {
@@ -213,6 +246,7 @@ impl Parser {
         match syntax_pattern.as_str() {
             "i" => (updated_addr, instr_only(&token_list)),
             "ic" => (updated_addr, instr_condition(&token_list)),
+            "ir" => (updated_addr, instr_reg(&token_list)),
             "irCr" => (updated_addr, instr_reg_reg(&token_list)),
             "irCn" => (updated_addr, instr_reg_num(&token_list)),
             _ => {
@@ -257,7 +291,7 @@ impl Parser {
         }
     }
 
-    fn update_address(&mut self, tokens: &Vec<Token>, current_addr: usize) -> usize {
+    fn update_address(&mut self, tokens: &Vec<Token>) -> usize {
         match tokens.as_slice() {
             [Token::AddressDiretive, Token::Address(addr)] => *addr as usize,
             _ => unreachable!(),
@@ -280,11 +314,7 @@ impl Parser {
                     break;
                 }
                 Token::AddressDiretive => {
-                    updated_addr = self.update_address(token_list, instruction_address);
-                    println!(
-                        "Called addr: {} before {} after",
-                        instruction_address, updated_addr
-                    );
+                    updated_addr = self.update_address(token_list);
                     break;
                 }
                 _ => {
