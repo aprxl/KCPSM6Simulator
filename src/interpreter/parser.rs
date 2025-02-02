@@ -25,8 +25,10 @@ pub enum Instruction {
     CompareCarry { lhs: u8, rhs: u8 },
     CompareCarryConstant { lhs: u8, rhs: u32 },
     FetchConstant { lhs: u8, rhs: u32 },
+    HardwareBuild { register: u8 },
     InputConstant { lhs: u8, rhs: u32 },
     Load { lhs: u8, rhs: u8 },
+    LoadAndReturn { lhs: u8, rhs: u32 },
     LoadConstant { lhs: u8, rhs: u32 },
     Or { lhs: u8, rhs: u8 },
     OrConstant { lhs: u8, rhs: u32 },
@@ -150,6 +152,7 @@ fn instr_reg_num(token_list: &Vec<Token>) -> Instruction {
                 "fetch" => Instruction::FetchConstant { lhs, rhs },
                 "input" => Instruction::InputConstant { lhs, rhs },
                 "load" => Instruction::LoadConstant { lhs, rhs },
+                "load&return" => Instruction::LoadAndReturn { lhs, rhs },
                 "or" => Instruction::OrConstant { lhs, rhs },
                 "output" => Instruction::OutputConstant { lhs, rhs },
                 "store" => Instruction::StoreConstant { lhs, rhs },
@@ -182,6 +185,7 @@ fn instr_reg(token_list: &Vec<Token>) -> Instruction {
                 "srx" => Instruction::ShiftRightCarry { register },
                 "rl" => Instruction::RotateLeft { register },
                 "rr" => Instruction::RotateRight { register },
+                "hwbuild" => Instruction::HardwareBuild { register },
                 _ => panic!("Unable to parse line!"),
             }
         }
