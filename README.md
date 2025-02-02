@@ -13,7 +13,7 @@
   - [ ] Parse words into instructions
   - [ ] Create a simulation environment and run Picoblaze code
   - [ ] Identify syntax mistakes before execution and runtime errors
-    - [ ] Insure correct functionality with the KCPSM6 Picoblaze language
+    - [ ] Ensure correct functionality with the KCPSM6 Picoblaze language
   - [ ] Assure correct functionality through test cases
   - [ ] Implement a simple debugger
 

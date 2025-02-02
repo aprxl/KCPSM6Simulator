@@ -235,9 +235,9 @@ impl Parser {
 
         let mut instruction_address = 0;
 
-        // Run through the tokens once to find assembler diretives.
+        // Run through the tokens once to find assembler directive.
         for line in tokens_per_line.clone() {
-            let new_address = self.parse_diretives(&line, instruction_address);
+            let new_address = self.parse_directives(&line, instruction_address);
             instruction_address = new_address + 1;
         }
 
@@ -265,7 +265,7 @@ impl Parser {
         instruction_address: usize,
     ) -> (usize, Instruction) {
         let (updated_addr, token_list) =
-            self.ignore_diretives_and_update_tokens(token_list, instruction_address);
+            self.ignore_directives_and_update_tokens(token_list, instruction_address);
 
         if token_list.is_empty() {
             return (updated_addr, Instruction::None);
@@ -318,7 +318,7 @@ impl Parser {
 
     fn add_constant(&mut self, tokens: &Vec<Token>) {
         match tokens.as_slice() {
-            [Token::ConstantDiretive, Token::Word(constant_name), _, Token::Number(value, _)] => {
+            [Token::ConstantDirective, Token::Word(constant_name), _, Token::Number(value, _)] => {
                 self.constants.push(Constant(constant_name.clone(), *value));
             }
             _ => unreachable!(),
@@ -326,12 +326,12 @@ impl Parser {
     }
 
     fn add_alias(&mut self, tokens: &Vec<Token>) {
-        // TODO: It turns out namereg diretives are not creating aliases, but instead RENAMING a
+        // TODO: It turns out namereg directives are not creating aliases, but instead RENAMING a
         // register. For example, if you do `namereg s1, first`, then `s1` is not longer "in the
         // scope". Right now we're hoping that the user won't try to access a register by its
         // original name after the namereg.
         match tokens.as_slice() {
-            [Token::NameregDiretive, Token::Register(register), _, Token::Word(alias_name)] => {
+            [Token::NameregDirective, Token::Register(register), _, Token::Word(alias_name)] => {
                 self.aliases.push(Alias(alias_name.clone(), *register));
             }
             _ => unreachable!(),
@@ -340,24 +340,24 @@ impl Parser {
 
     fn update_address(&mut self, tokens: &Vec<Token>) -> usize {
         match tokens.as_slice() {
-            [Token::AddressDiretive, Token::Address(addr)] => *addr as usize,
+            [Token::AddressDirective, Token::Address(addr)] => *addr as usize,
             _ => unreachable!(),
         }
     }
 
-    fn parse_diretives(&mut self, token_list: &Vec<Token>, instruction_address: usize) -> usize {
+    fn parse_directives(&mut self, token_list: &Vec<Token>, instruction_address: usize) -> usize {
         let mut updated_addr = instruction_address;
         for token in token_list {
             match token {
                 Token::Label(_) => self.add_label(token, instruction_address),
-                Token::ConstantDiretive => {
+                Token::ConstantDirective => {
                     self.add_constant(token_list);
                     break;
                 }
-                Token::NameregDiretive => {
+                Token::NameregDirective => {
                     self.add_alias(token_list);
                 }
-                Token::AddressDiretive => {
+                Token::AddressDirective => {
                     updated_addr = self.update_address(token_list);
                 }
                 _ => {
@@ -381,7 +381,7 @@ impl Parser {
         Token::Word(word.clone())
     }
 
-    fn ignore_diretives_and_update_tokens(
+    fn ignore_directives_and_update_tokens(
         &mut self,
         token_list: &Vec<Token>,
         instruction_address: usize,
@@ -389,13 +389,20 @@ impl Parser {
         let mut updated_tokens: Vec<Token> = Vec::new();
         let mut updated_addr = instruction_address;
 
+        // TODO: You can use constants in the address and constants directive, e.g.
+        // ```
+        // CONSTANT addr, 1234'd
+        // CONSTANT addr2, addr
+        // ADDRESS addr2
+        // ```
+        // The code currently doesn't support this.
         for token in token_list {
             match token {
                 Token::Label(_) => continue,
-                Token::ConstantDiretive | Token::NameregDiretive => {
+                Token::ConstantDirective | Token::NameregDirective => {
                     break;
                 }
-                Token::AddressDiretive => {
+                Token::AddressDirective => {
                     updated_addr = self.update_address(token_list);
                     break;
                 }

@@ -25,9 +25,9 @@ pub enum Token {
     Number(u32, NumberType),
     Address(u32),
     Condition(ConditionType),
-    ConstantDiretive,
-    AddressDiretive,
-    NameregDiretive,
+    ConstantDirective,
+    AddressDirective,
+    NameregDirective,
     Comma,
     EndOfLine,
 }
@@ -200,11 +200,11 @@ impl Tokenizer {
                 } else if word.to_lowercase() == "nz" {
                     self.tokens.push(Token::Condition(ConditionType::IfNonZero));
                 } else if word.to_lowercase() == "constant" {
-                    self.tokens.push(Token::ConstantDiretive)
+                    self.tokens.push(Token::ConstantDirective)
                 } else if word.to_lowercase() == "address" {
-                    self.tokens.push(Token::AddressDiretive);
+                    self.tokens.push(Token::AddressDirective);
                 } else if word.to_lowercase() == "namereg" {
-                    self.tokens.push(Token::NameregDiretive);
+                    self.tokens.push(Token::NameregDirective);
                 } else if is_str_instruction(&word) {
                     self.tokens.push(Token::Instruction(word.clone()));
                 } else if is_str_label(&word) {
