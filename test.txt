@@ -7,16 +7,15 @@ main:
   add s1, 2'd
   add s1, 00000011'b
 
+address 111
 addcy_:
   addcy s1, s1
   addcy s1, 01
 
-and_:
-  and s1, s1
+and_: and s1, s1
   and s1, 01
 
-compare_:
-  compare s1, s1
+compare_: compare s1, s1
   compare s1, 01
 
 load_:

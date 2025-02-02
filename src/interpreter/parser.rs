@@ -1,3 +1,5 @@
+use std::thread::current;
+
 use crate::{ConditionType, Token};
 
 #[derive(Debug, Clone)]
@@ -180,9 +182,9 @@ impl Parser {
             let (new_address, instr) = self.parse_line(&line, instruction_address);
 
             match instr {
-                Instruction::None => continue,
+                Instruction::None => instruction_address = new_address,
                 _ => {
-                    self.instructions.push((instruction_address, instr));
+                    self.instructions.push((new_address, instr));
                     instruction_address = new_address + 1;
                 }
             }
@@ -196,10 +198,11 @@ impl Parser {
         token_list: &Vec<Token>,
         instruction_address: usize,
     ) -> (usize, Instruction) {
-        let token_list = self.parse_diretives_and_update_tokens(token_list, instruction_address);
+        let (updated_addr, token_list) =
+            self.parse_diretives_and_update_tokens(token_list, instruction_address);
 
         if token_list.is_empty() {
-            return (instruction_address, Instruction::None);
+            return (updated_addr, Instruction::None);
         }
 
         let syntax_pattern = convert_tokens_into_string(&token_list);
@@ -208,27 +211,32 @@ impl Parser {
         // Picoblaze assembly is very simple, so we don't need a super
         // sofisticated parser and this will suffice.
         match syntax_pattern.as_str() {
-            "i" => (instruction_address, instr_only(&token_list)),
-            "ic" => (instruction_address, instr_condition(&token_list)),
-            "irCr" => (instruction_address, instr_reg_reg(&token_list)),
-            "irCn" => (instruction_address, instr_reg_num(&token_list)),
+            "i" => (updated_addr, instr_only(&token_list)),
+            "ic" => (updated_addr, instr_condition(&token_list)),
+            "irCr" => (updated_addr, instr_reg_reg(&token_list)),
+            "irCn" => (updated_addr, instr_reg_num(&token_list)),
             _ => {
                 eprintln!(
                     "Failed to parse line {} (pattern {})",
-                    instruction_address, syntax_pattern
+                    updated_addr, syntax_pattern
                 );
 
-                (instruction_address, Instruction::None)
+                (updated_addr, Instruction::None)
             }
         }
     }
 
     fn add_label(&mut self, token: &Token, instruction_address: usize) {
         if let Token::Label(label) = token {
-            if let Some(_) = self.labels.iter().find(|l| {
-                let Label(name, _) = l;
-                label == name
-            }) {
+            if self
+                .labels
+                .iter()
+                .find(|l| {
+                    let Label(name, _) = l;
+                    label == name
+                })
+                .is_some()
+            {
                 panic!(
                     "There is already a label called '{}' (line {})!",
                     label, instruction_address
@@ -249,12 +257,20 @@ impl Parser {
         }
     }
 
+    fn update_address(&mut self, tokens: &Vec<Token>, current_addr: usize) -> usize {
+        match tokens.as_slice() {
+            [Token::AddressDiretive, Token::Address(addr)] => *addr as usize,
+            _ => unreachable!(),
+        }
+    }
+
     fn parse_diretives_and_update_tokens(
         &mut self,
         token_list: &Vec<Token>,
         instruction_address: usize,
-    ) -> Vec<Token> {
+    ) -> (usize, Vec<Token>) {
         let mut updated_tokens: Vec<Token> = Vec::new();
+        let mut updated_addr = instruction_address;
 
         for token in token_list {
             match token {
@@ -263,13 +279,21 @@ impl Parser {
                     self.add_constant(token_list);
                     break;
                 }
+                Token::AddressDiretive => {
+                    updated_addr = self.update_address(token_list, instruction_address);
+                    println!(
+                        "Called addr: {} before {} after",
+                        instruction_address, updated_addr
+                    );
+                    break;
+                }
                 _ => {
                     updated_tokens.push(token.clone());
                 }
             }
         }
 
-        updated_tokens
+        (updated_addr, updated_tokens)
     }
 
     pub fn get_instructions(&self) -> &Vec<(usize, Instruction)> {
