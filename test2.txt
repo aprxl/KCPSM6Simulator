@@ -1,0 +1,81 @@
+; Laboratorio 3, Pratica de Eletronica Digital 2
+; Por Caio Ivo Fortes Urnau
+
+; Constantes de IO
+CONSTANT swA, 1'd
+CONSTANT swB, 2'd
+CONSTANT led, 4'd
+
+main:
+	main_getxy:
+	INPUT s0, swA ; Load inputs
+	INPUT s1, swB
+
+	XOR sF, sF ; NOP, wait for inputs to be ready
+
+	LOAD sD, s0 ; Setup call parameters
+	LOAD sE, s1
+
+	XOR s1, s1
+	LOAD s2, sF ; s2: x = max(a, b)
+
+	XOR s1, s1
+	LOAD s3, sF ; s3: y = min(a, b)
+
+	main_shift:
+	LOAD s4, s2 ; s4: t3 = x >> 3
+	SR0 s4
+	SR0 s4
+	SR0 s4
+
+	SR0 s3 ; s3: t4 = y >> 1
+
+	main_arth:
+	LOAD s5, s2 ; s5: t5 = x - t3
+	SUB s5, s4
+	LOAD s6, s5 ; s6: t6 = t4 + t5
+	ADD s6, s3
+
+	LOAD sD, s6 ; sF: t7 = max(t6, x)
+	LOAD sE, s2
+	XOR s1, s1
+
+	OUTPUT sF, led
+	XOR s1, s1
+
+; Computa o valor maximo entre dois numeros.
+; @in 	sD 	(Primeiro numero)
+; @in 	sE 	(Segundo numero)
+; @out 	sF 	(Maior numero)
+max:
+	LOAD sF, sD ; Assume sD is the maximum
+	COMPARE sD, sE
+
+	XOR s1, s1
+	;JUMP max_ret   ; Otherwise, sD >= sE
+
+	max_low:
+	LOAD sF, sE
+	;JUMP max_ret
+
+	max_ret:
+	RETURN
+
+; Computa o valor minimo entre dois numeros.
+; @in 	sD 	(Primeiro numero)
+; @in 	sE 	(Segundo numero)
+; @out 	sF 	(Menor numero)
+min:
+	LOAD sF, sD		 ; Assume sD is the minimum
+	COMPARE sD, sE
+
+	XOR s1, s1
+	;JUMP min_low   ; Otherwise, sD >= sE
+
+	min_low:
+	LOAD sF, sE
+	XOR s1, s1
+
+	min_ret:
+	RETURN
+

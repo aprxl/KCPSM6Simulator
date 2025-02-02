@@ -264,6 +264,9 @@ impl Parser {
 
             let (should_increment, new_address) = self.parse_directives(&line, instruction_address);
 
+            // Check if we should increment the current address. This makes sure that
+            // lines with only directives aren't incrementing the address since they don't
+            // technically make part of the code.
             if should_increment {
                 instruction_address = new_address + 1;
             } else {
@@ -285,6 +288,14 @@ impl Parser {
                 }
             }
         }
+
+        // Make sure that our instructions are sorted so we execute them in order.
+        self.instructions.sort_by(|a, b| {
+            let (addr_a, _) = a;
+            let (addr_b, _) = b;
+
+            addr_a.cmp(addr_b)
+        });
 
         self
     }
@@ -381,6 +392,10 @@ impl Parser {
         token_list: &Vec<Token>,
         instruction_address: usize,
     ) -> (bool, usize) {
+        if token_list.is_empty() {
+            return (false, instruction_address);
+        }
+
         let mut updated_addr = instruction_address;
         let mut is_valid_instruction = true;
 
@@ -415,13 +430,6 @@ impl Parser {
         }
 
         if is_valid_instruction {
-            println!("Instr: {}", instruction_address);
-
-            for t in token_list {
-                println!("{:?}", t);
-            }
-
-            println!();
             self.addresses.push(instruction_address);
         }
 

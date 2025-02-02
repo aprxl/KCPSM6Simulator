@@ -8,10 +8,11 @@ main:
   add s1, 2'd ; 3
   add s1, 00000011'b ; 4
 
-address 006
+address 050
 other: test s1, s1 ; 6
   test s2, s1 ; 7
 
+address 025
 something_else:
   xor s1, 00 ; 8
   xor s1, 01 ; 9
