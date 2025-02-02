@@ -33,6 +33,7 @@ pub enum Instruction {
     Or { lhs: u8, rhs: u8 },
     OrConstant { lhs: u8, rhs: u32 },
     OutputConstant { lhs: u8, rhs: u32 },
+    OutputDoubleConstant { lhs: u32, rhs: u32 },
     OutputDeref { lhs: u8, rhs: u8 },
     Return,
     ReturnCondition { condition: ConditionType },
@@ -64,6 +65,7 @@ pub enum Instruction {
 
 pub struct Parser {
     instructions: Vec<(usize, Instruction)>,
+    addresses: Vec<usize>,
     labels: Vec<Label>,
     constants: Vec<Constant>,
     aliases: Vec<Alias>,
@@ -213,10 +215,26 @@ fn instr_reg_deref(token_list: &Vec<Token>) -> Instruction {
     }
 }
 
+fn instr_num_num(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::Number(lhs, _), _, Token::Number(rhs, _)] => {
+            let lhs = *lhs;
+            let rhs = *rhs;
+
+            match instr.as_str() {
+                "outputk" => Instruction::OutputDoubleConstant { lhs, rhs },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {
             instructions: Vec::new(),
+            addresses: Vec::new(),
             labels: Vec::new(),
             constants: Vec::new(),
             aliases: Vec::new(),
@@ -237,8 +255,20 @@ impl Parser {
 
         // Run through the tokens once to find assembler directive.
         for line in tokens_per_line.clone() {
-            let new_address = self.parse_directives(&line, instruction_address);
-            instruction_address = new_address + 1;
+            if self.addresses.contains(&instruction_address) {
+                panic!(
+                    "Attempted to add instruction at address that's already occupied ({}).",
+                    instruction_address
+                );
+            }
+
+            let (should_increment, new_address) = self.parse_directives(&line, instruction_address);
+
+            if should_increment {
+                instruction_address = new_address + 1;
+            } else {
+                instruction_address = new_address;
+            }
         }
 
         instruction_address = 0;
@@ -283,6 +313,7 @@ impl Parser {
             "irCr" => (updated_addr, instr_reg_reg(&token_list)),
             "irCn" => (updated_addr, instr_reg_num(&token_list)),
             "irCd" => (updated_addr, instr_reg_deref(&token_list)),
+            "inCn" => (updated_addr, instr_num_num(&token_list)),
             _ => {
                 eprintln!(
                     "Failed to parse line {} (pattern {})",
@@ -345,20 +376,37 @@ impl Parser {
         }
     }
 
-    fn parse_directives(&mut self, token_list: &Vec<Token>, instruction_address: usize) -> usize {
+    fn parse_directives(
+        &mut self,
+        token_list: &Vec<Token>,
+        instruction_address: usize,
+    ) -> (bool, usize) {
         let mut updated_addr = instruction_address;
+        let mut is_valid_instruction = true;
+
         for token in token_list {
             match token {
-                Token::Label(_) => self.add_label(token, instruction_address),
+                Token::Label(_) => {
+                    self.add_label(token, instruction_address);
+
+                    // Checking if length is greater than one to check if this is an inline label.
+                    is_valid_instruction = token_list.len() > 1;
+                }
                 Token::ConstantDirective => {
                     self.add_constant(token_list);
+
+                    is_valid_instruction = false;
                     break;
                 }
                 Token::NameregDirective => {
                     self.add_alias(token_list);
+
+                    is_valid_instruction = false;
                 }
                 Token::AddressDirective => {
                     updated_addr = self.update_address(token_list);
+
+                    is_valid_instruction = false;
                 }
                 _ => {
                     continue;
@@ -366,7 +414,18 @@ impl Parser {
             }
         }
 
-        updated_addr
+        if is_valid_instruction {
+            println!("Instr: {}", instruction_address);
+
+            for t in token_list {
+                println!("{:?}", t);
+            }
+
+            println!();
+            self.addresses.push(instruction_address);
+        }
+
+        (is_valid_instruction, updated_addr)
     }
 
     fn try_to_convert_word_into_token(&self, word: &String) -> Token {

@@ -1,5 +1,5 @@
-use crate::Reader;
-
+// TODO: This enum is, at the moment, useless, since we treat any number literal as a decimal.
+// Remove at some point?
 #[derive(Debug, Clone, Copy)]
 pub enum NumberType {
     Decimal,

@@ -2,90 +2,18 @@ constant abc, 01
 
 main_xyz:
 main:
-  add s1, s1
-  add s1, 01
-  add s1, abc
-  add s1, 2'd
-  add s1, 00000011'b
+  add s1, s1 ; 0
+  add s1, 01 ; 1
+  add s1, abc ; 2
+  add s1, 2'd ; 3
+  add s1, 00000011'b ; 4
 
-address 111
-addcy_:
-  addcy s1, s1
-  addcy s1, 01
+address 006
+other: test s1, s1 ; 6
+  test s2, s1 ; 7
 
-and_: and s1, s1
-  and s1, 01
-
-compare_: compare s1, s1
-  compare s1, 01
-
-load_:
-  load s1, s1
-  load s1, 01
-
-or_:
-  or s1, s1
-  or s1, 01
-
-sub_:
-  sub s1, s1
-  sub s1, 01
-
-subcy_:
-  subcy s1, s1
-  subcy s1, 01
-
-test_:
-  test s1, s1
-  test s1, 01
-
-xor_:
-  xor s1, s1
-  xor s1, 01
-
-fetch_:
-  fetch s1, 01
-  fetch s1, (s2)
-
-input_:
-  input s1, 01
-  input s1, (s2)
-
-output_:
-  output s1, 01
-  output s1, (s2)
-
-store_:
-  store s1, 01
-  store s1, (s2)
-
-star_:
-  star s1, s1
-  star s1, 01
-
-comparecy_:
-  comparecy s1, s1
-  comparecy s1, 01
-
-testcy_:
-  testcy s1, s1
-  testcy s1, 01
-
-shiftleft:
-  sl0 s1
-  sl1 s1
-  sla s1
-  slx s1
-  rl s1
-
-shiftright:
-  sr0 s1
-  sr1 s1
-  sra s1
-  srx s1
-  rr s1
-
-  hwbuild s2
-  load&return s1, 00
-  return nz
+something_else:
+  xor s1, 00 ; 8
+  xor s1, 01 ; 9
+  return nz ; 10
 
