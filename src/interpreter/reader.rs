@@ -38,20 +38,32 @@ fn remove_after_delimiter(input: String, delimiter: char) -> String {
 
 #[derive(Debug)]
 pub struct Reader {
-    file: String,
     contents: Vec<Vec<String>>,
 }
 
 impl Reader {
-    pub fn new(file: &str) -> Reader {
+    pub fn new() -> Reader {
         Reader {
-            file: file.into(),
             contents: Vec::new(),
         }
     }
 
-    pub fn read_and_split(&mut self) -> &mut Reader {
-        let file = File::open(self.file.clone()).expect("Unable to open the file.");
+    pub fn new_from_file(file: &str) -> Reader {
+        Reader {
+            contents: Vec::new(),
+        }
+    }
+
+    pub fn read_buffer_and_split(&mut self, buffer: String) -> &mut Reader {
+        let lines: Vec<String> = buffer.lines().map(|line| line.to_string()).collect();
+
+        self.read_lines(&lines);
+
+        self
+    }
+
+    pub fn read_file_and_split(&mut self, file: String) -> &mut Reader {
+        let file = File::open(file.clone()).expect("Unable to open the file.");
 
         let reader = BufReader::new(file);
 
@@ -62,13 +74,19 @@ impl Reader {
             .map(|line| line.unwrap_or("".into()))
             .collect();
 
+        self.read_lines(&lines);
+
+        self
+    }
+
+    fn read_lines(&mut self, lines: &Vec<String>) {
         for line in lines {
             if line.is_empty() || line.chars().all(|c| c.is_whitespace()) {
                 continue;
             }
 
             // Remove all comments from the code.
-            let line = remove_after_delimiter(line, ';');
+            let line = remove_after_delimiter(line.clone(), ';');
 
             let mut tokens: Vec<String> = Vec::new();
 
@@ -85,12 +103,9 @@ impl Reader {
 
             self.contents.push(tokens);
         }
-
-        self
     }
 
     pub fn get_contents(&self) -> &Vec<Vec<String>> {
         &self.contents
     }
 }
-

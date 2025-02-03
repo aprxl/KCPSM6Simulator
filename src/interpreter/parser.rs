@@ -341,6 +341,9 @@ impl Parser {
 
         let mut instruction_address = 0;
 
+        // TODO: We could build a possibly smaller token matrix here already ignoring the
+        // directives. This could save some time when parsing for instructions.
+        //
         // Run through the tokens once to find assembler directive.
         for line in tokens_per_line.clone() {
             if self.addresses.contains(&instruction_address) {

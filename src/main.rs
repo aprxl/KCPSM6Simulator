@@ -3,13 +3,21 @@ use interpreter::{parser::*, reader::*, tokenizer::*};
 pub mod interpreter;
 
 fn main() {
-    let mut r = Reader::new("test2.txt");
-
+    let mut r = Reader::new();
     let mut t = Tokenizer::new();
-
     let mut p = Parser::new();
 
-    t.tokenize(r.read_and_split().get_contents().clone());
+    let test_script = r#"
+        constant abc, 00
+        main:
+            xor s1, s1
+            add s2, abc
+            jump main
+    "#
+    .to_string();
+
+    t.tokenize(r.read_buffer_and_split(test_script).get_contents().clone());
+
     p.parse(t.get_tokens().clone());
 
     for (addr, instr) in p.get_instructions() {
