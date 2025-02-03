@@ -3,7 +3,7 @@ use interpreter::{parser::*, reader::*, tokenizer::*};
 pub mod interpreter;
 
 fn main() {
-    let mut r = Reader::new("test.txt");
+    let mut r = Reader::new("test2.txt");
 
     let mut t = Tokenizer::new();
 

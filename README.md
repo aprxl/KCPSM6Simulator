@@ -10,7 +10,7 @@
 - [ ] Picoblaze interpreter and simulator
   - [X] Write the reader and parser
   - [X] Convert words into tokens
-  - [ ] Parse words into instructions
+  - [X] Parse tokens into instructions
   - [ ] Create a simulation environment and run Picoblaze code
   - [ ] Identify syntax mistakes before execution and runtime errors
     - [ ] Ensure correct functionality with the KCPSM6 Picoblaze language

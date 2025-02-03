@@ -160,6 +160,8 @@ fn is_str_register(word: &String) -> bool {
 }
 
 fn is_str_deref_register(word: &String) -> bool {
+    // TODO: You technically can add whitespace in between the register and parentheses, e.g.
+    // "( s1 )", and that would not work.
     if word.len() != 4 {
         return false;
     }
