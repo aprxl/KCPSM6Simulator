@@ -48,12 +48,6 @@ impl Reader {
         }
     }
 
-    pub fn new_from_file(file: &str) -> Reader {
-        Reader {
-            contents: Vec::new(),
-        }
-    }
-
     pub fn read_buffer_and_split(&mut self, buffer: String) -> &mut Reader {
         let lines: Vec<String> = buffer.lines().map(|line| line.to_string()).collect();
 

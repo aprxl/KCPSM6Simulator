@@ -50,8 +50,6 @@ pub struct Tokenizer {
 // }
 
 fn is_str_instruction(word: &String) -> bool {
-    // TODO: There are other "instructions" but I will be adding them later.
-    // E.g. RETURNI ENABLE/DISABLE, ADDRESS, CONSTANT etc.
     let instructions: Vec<&str> = vec![
         "add",
         "addcy",
@@ -160,8 +158,8 @@ fn is_str_register(word: &String) -> bool {
 }
 
 fn is_str_deref_register(word: &String) -> bool {
-    // TODO: You technically can add whitespace in between the register and parentheses, e.g.
-    // "( s1 )", and that would not work.
+    let word: String = word.chars().filter(|c| !c.is_whitespace()).collect();
+
     if word.len() != 4 {
         return false;
     }
