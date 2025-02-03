@@ -8,11 +8,10 @@ fn main() {
     let mut p = Parser::new();
 
     let test_script = r#"
-        constant abc, 00
+        constant addr, 100'd
+        address addr
         main:
             xor s1, s1
-            add s2, abc
-            store s1, ( s2 )
             jump main
     "#
     .to_string();

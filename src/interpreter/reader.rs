@@ -7,6 +7,12 @@ fn split_inclusive(input: &str, delimiter: char) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut start = 0;
 
+    // TODO: Hacky fix to skip DoubleDerefRegister, since we want to keep it as a word.
+    if input.starts_with("(") && input.ends_with(")") {
+        tokens.push(input.to_string());
+        return tokens;
+    }
+
     for (i, c) in input.char_indices() {
         if c == delimiter {
             // Push the substring before the delimiter
@@ -37,13 +43,18 @@ fn remove_after_delimiter(input: String, delimiter: char) -> String {
 }
 
 fn squish_between_delimiters(input: String) -> String {
+    // In theory, there are only parentheses in Picoblaze assembly.
+    // Add other delimiters just in case.
+    let opening_delimiter = vec!['(', '[', '{'];
+    let closing_delimiter = vec![')', ']', '}'];
+
     let mut result = String::new();
 
     let mut is_inside = false;
     for c in input.chars() {
-        if c == '(' {
+        if opening_delimiter.contains(&c) {
             is_inside = true;
-        } else if c == ')' {
+        } else if closing_delimiter.contains(&c) {
             is_inside = false;
         }
 
@@ -100,7 +111,7 @@ impl Reader {
                 continue;
             }
 
-            // Remove all comments from the code and squish tokens between parentheses.
+            // Remove all comments from the code and squish tokens.
             let line = squish_between_delimiters(remove_after_delimiter(line.clone(), ';'));
 
             let mut tokens: Vec<String> = Vec::new();

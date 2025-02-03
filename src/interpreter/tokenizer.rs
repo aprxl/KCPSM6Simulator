@@ -159,6 +159,8 @@ fn is_str_register(word: &String) -> bool {
 }
 
 fn is_str_deref_register(word: &String) -> bool {
+    // NOTE: This only parses unaliased registers, e.g. "(s1)".
+    // Aliases are handled by the Tokenizer.
     if word.len() != 4 {
         return false;
     }
@@ -175,9 +177,13 @@ fn is_str_deref_register(word: &String) -> bool {
 }
 
 fn is_str_double_deref_register(word: &String) -> bool {
-    let word: String = word.chars().filter(|c| !c.is_whitespace()).collect();
+    // NOTE: This only parses unaliased registers, e.g. "(s1,s2)".
+    // Aliases are handled by the Tokenizer.
+    if word.len() != 7 {
+        return false;
+    }
 
-    if word.len() != 4 {
+    if !word.contains(',') {
         return false;
     }
 
@@ -319,6 +325,20 @@ impl Tokenizer {
                         Ok(number) => self.tokens.push(Token::DerefRegister(number)),
                         Err(_) => panic!(
                             "Unable to parse {} register, at line {}!",
+                            word, line_number
+                        ),
+                    }
+                } else if is_str_double_deref_register(&word) {
+                    let first = u8::from_str_radix(&word[2..3], 16);
+                    let second = u8::from_str_radix(&word[5..6], 16);
+
+                    match [first, second] {
+                        [Ok(first_number), Ok(second_number)] => self
+                            .tokens
+                            .push(Token::DoubleDerefRegister(first_number, second_number)),
+
+                        _ => panic!(
+                            "Unable to parse {} double register, at line {}!",
                             word, line_number
                         ),
                     }

@@ -20,6 +20,7 @@ pub enum Instruction {
     And { lhs: u8, rhs: u8 },
     AndConstant { lhs: u8, rhs: u32 },
     Call { address: u32 },
+    CallAt { first: u8, second: u8 },
     CallConditional { condition: ConditionType, address: u32 },
     Compare { lhs: u8, rhs: u8 },
     CompareConstant { lhs: u8, rhs: u32 },
@@ -32,6 +33,7 @@ pub enum Instruction {
     InputDeref { lhs: u8, rhs: u8 },
     Interrupt { state: bool },
     Jump { address: u32 },
+    JumpAt { first: u8, second: u8 },
     JumpConditional { condition: ConditionType, address: u32 },
     Load { lhs: u8, rhs: u8 },
     LoadAndReturn { lhs: u8, rhs: u32 },
@@ -87,6 +89,7 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Instruction(_) => 'i',
             Token::Register(_) => 'r',
             Token::DerefRegister(_) => 'd',
+            Token::DoubleDerefRegister(_, _) => 'D',
             Token::Number(_, _) => 'n',
             Token::Address(_) | Token::Label(_) => 'a',
             Token::Condition(_) => 'c',
@@ -231,6 +234,22 @@ fn instr_num_num(token_list: &Vec<Token>) -> Instruction {
 
             match instr.as_str() {
                 "outputk" => Instruction::OutputDoubleConstant { lhs, rhs },
+                _ => panic!("Unable to parse line!"),
+            }
+        }
+        _ => panic!("Unable to parse line!"),
+    }
+}
+
+fn instr_double_deref(token_list: &Vec<Token>) -> Instruction {
+    match token_list.as_slice() {
+        [Token::Instruction(instr), Token::DoubleDerefRegister(first, second)] => {
+            let first = *first;
+            let second = *second;
+
+            match instr.as_str() {
+                "jump@" => Instruction::JumpAt { first, second },
+                "call@" => Instruction::CallAt { first, second },
                 _ => panic!("Unable to parse line!"),
             }
         }
@@ -420,6 +439,7 @@ impl Parser {
             "inCn" => (updated_addr, instr_num_num(&token_list)),
             "ia" => (updated_addr, instr_addr(&token_list)),
             "icCa" => (updated_addr, instr_condition_addr(&token_list)),
+            "iD" => (updated_addr, instr_double_deref(&token_list)),
             "ww" => (updated_addr, word_word(&token_list)),
             _ => {
                 eprintln!(
@@ -581,6 +601,52 @@ impl Parser {
             return Token::DerefRegister(reg);
         }
 
+        // TODO: This is such a painful way of doing this. It works, but it scratches that part of
+        // my brain that tells me I'm being stupid.
+        if word.contains(",") {
+            let is_register_like = |s: &String| -> bool {
+                let mut chars = s.chars();
+
+                return s.len() == 2
+                    && chars.next().unwrap_or(' ') == 's'
+                    && chars.nth(0).unwrap_or(' ').is_digit(16);
+            };
+
+            let words: Vec<&str> = word.split(",").collect();
+
+            if words.len() == 2 {
+                let w1 = words[0].to_string();
+                let w2 = words[1].to_string();
+                println!("{} {}", w1, w2);
+                let mut first = 0u8;
+                let mut second = 0u8;
+
+                if !is_register_like(&w1) {
+                    if let Some(Alias(_, register)) = self.find_alias(&w1) {
+                        first = register;
+                    } else {
+                        panic!("Unable to parse register at DerefDoubleRegister.");
+                    }
+                } else {
+                    first = u8::from_str_radix(&w1[1..2], 16)
+                        .expect("Unable to parse register at DerefDoubleRegister.");
+                }
+
+                if !is_register_like(&w2) {
+                    if let Some(Alias(_, register)) = self.find_alias(&w2) {
+                        second = register;
+                    } else {
+                        panic!("Unable to parse register at DerefDoubleRegister.");
+                    }
+                } else {
+                    second = u8::from_str_radix(&w2[1..2], 16)
+                        .expect("Unable to parse register at DerefDoubleRegister.");
+                }
+
+                return Token::DoubleDerefRegister(first, second);
+            }
+        }
+
         Token::Word(word.clone())
     }
 
@@ -592,13 +658,6 @@ impl Parser {
         let mut updated_tokens: Vec<Token> = Vec::new();
         let mut updated_addr = instruction_address;
 
-        // TODO: You can use constants in the address and constants directive, e.g.
-        // ```
-        // CONSTANT addr, 1234'd
-        // CONSTANT addr2, addr
-        // ADDRESS addr2
-        // ```
-        // The code currently doesn't support this.
         for token in token_list {
             match token {
                 Token::Label(_) => continue,
