@@ -12,7 +12,7 @@ fn main() {
         main:
             xor s1, s1
             add s2, abc
-            store s1, (  s2  )
+            store s1, ( s2 )
             jump main
     "#
     .to_string();

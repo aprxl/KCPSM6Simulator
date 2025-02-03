@@ -36,6 +36,27 @@ fn remove_after_delimiter(input: String, delimiter: char) -> String {
     }
 }
 
+fn squish_between_delimiters(input: String) -> String {
+    let mut result = String::new();
+
+    let mut is_inside = false;
+    for c in input.chars() {
+        if c == '(' {
+            is_inside = true;
+        } else if c == ')' {
+            is_inside = false;
+        }
+
+        if !is_inside {
+            result.push(c);
+        } else if !c.is_whitespace() {
+            result.push(c);
+        }
+    }
+
+    result
+}
+
 #[derive(Debug)]
 pub struct Reader {
     contents: Vec<Vec<String>>,
@@ -79,8 +100,8 @@ impl Reader {
                 continue;
             }
 
-            // Remove all comments from the code.
-            let line = remove_after_delimiter(line.clone(), ';');
+            // Remove all comments from the code and squish tokens between parentheses.
+            let line = squish_between_delimiters(remove_after_delimiter(line.clone(), ';'));
 
             let mut tokens: Vec<String> = Vec::new();
 

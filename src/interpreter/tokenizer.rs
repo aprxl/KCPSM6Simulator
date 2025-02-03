@@ -22,6 +22,7 @@ pub enum Token {
     Label(String),
     Register(u8),
     DerefRegister(u8),
+    DoubleDerefRegister(u8, u8),
     Number(u32, NumberType),
     Address(u32),
     Condition(ConditionType),
@@ -158,6 +159,22 @@ fn is_str_register(word: &String) -> bool {
 }
 
 fn is_str_deref_register(word: &String) -> bool {
+    if word.len() != 4 {
+        return false;
+    }
+
+    if !word.starts_with("(") {
+        return false;
+    }
+
+    if !word.ends_with(")") {
+        return false;
+    }
+
+    true
+}
+
+fn is_str_double_deref_register(word: &String) -> bool {
     let word: String = word.chars().filter(|c| !c.is_whitespace()).collect();
 
     if word.len() != 4 {
