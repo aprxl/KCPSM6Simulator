@@ -8,16 +8,15 @@ fn main() {
     let mut p = Parser::new();
 
     let test_script = r#"
+        namereg s1, t1
+        namereg s2, t2
         main:
-            store s1, (s2)
+            store s3, (s3)
+            jump@ (t1, t2)
     "#
     .to_string();
 
     t.tokenize(r.read_buffer_and_split(test_script).get_contents().clone());
-
-    for token in t.get_tokens() {
-        println!("{:?}", token);
-    }
 
     p.parse(t.get_tokens().clone());
 

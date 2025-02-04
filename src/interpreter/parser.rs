@@ -88,8 +88,8 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Word(_) => 'w',
             Token::Instruction(_) => 'i',
             Token::Register(_) => 'r',
-            Token::DerefRegister(_) => 'd',
-            Token::DoubleDerefRegister(_, _) => 'D',
+            //Token::DerefRegister(_) => 'd',
+            //Token::DoubleDerefRegister(_, _) => 'D',
             Token::Number(_, _) => 'n',
             Token::Address(_) | Token::Label(_) => 'a',
             Token::Condition(_) => 'c',
@@ -211,7 +211,7 @@ fn instr_reg(token_list: &Vec<Token>) -> Instruction {
 
 fn instr_reg_deref(token_list: &Vec<Token>) -> Instruction {
     match token_list.as_slice() {
-        [Token::Instruction(instr), Token::Register(lhs), _, Token::DerefRegister(rhs)] => {
+        [Token::Instruction(instr), Token::Register(lhs), _, _, Token::Register(rhs), _] => {
             let lhs = *lhs;
             let rhs = *rhs;
 
@@ -244,7 +244,7 @@ fn instr_num_num(token_list: &Vec<Token>) -> Instruction {
 
 fn instr_double_deref(token_list: &Vec<Token>) -> Instruction {
     match token_list.as_slice() {
-        [Token::Instruction(instr), Token::DoubleDerefRegister(first, second)] => {
+        [Token::Instruction(instr), _, Token::Register(first), _, Token::Register(second), _] => {
             let first = *first;
             let second = *second;
 
@@ -436,11 +436,11 @@ impl Parser {
             "ir" => (updated_addr, instr_reg(&token_list)),
             "irCr" => (updated_addr, instr_reg_reg(&token_list)),
             "irCn" => (updated_addr, instr_reg_num(&token_list)),
-            "irCd" => (updated_addr, instr_reg_deref(&token_list)),
+            "irCprp" => (updated_addr, instr_reg_deref(&token_list)), // Update
             "inCn" => (updated_addr, instr_num_num(&token_list)),
             "ia" => (updated_addr, instr_addr(&token_list)),
             "icCa" => (updated_addr, instr_condition_addr(&token_list)),
-            "iD" => (updated_addr, instr_double_deref(&token_list)),
+            "iprCrp" => (updated_addr, instr_double_deref(&token_list)), // Update
             "ww" => (updated_addr, word_word(&token_list)),
             _ => {
                 eprintln!(
@@ -598,12 +598,14 @@ impl Parser {
             .filter(|c| *c != '(' && *c != ')')
             .collect::<String>();
 
-        if let Some(Alias(_, reg)) = self.find_alias(&word) {
-            return Token::DerefRegister(reg);
-        }
+        // TODO: Deref registers don't exist anymore, woohoo!
+        //if let Some(Alias(_, reg)) = self.find_alias(&word) {
+        //return Token::DerefRegister(reg);
+        //}
 
         // TODO: This is such a painful way of doing this. It works, but it scratches that part of
         // my brain that tells me I'm being stupid.
+        /*
         if word.contains(",") {
             let is_register_like = |s: &String| -> bool {
                 let mut chars = s.chars();
@@ -646,7 +648,7 @@ impl Parser {
 
                 return Token::DoubleDerefRegister(first, second);
             }
-        }
+        }*/
 
         Token::Word(word.clone())
     }

@@ -21,8 +21,6 @@ pub enum Token {
     Instruction(String),
     Label(String),
     Register(u8),
-    DerefRegister(u8),
-    DoubleDerefRegister(u8, u8),
     Number(u32, NumberType),
     Address(u32),
     Condition(ConditionType),
@@ -316,32 +314,6 @@ impl Tokenizer {
                         Ok(number) => self.tokens.push(Token::Register(number)),
                         Err(_) => panic!(
                             "Unable to parse {} register, at line {}!",
-                            word, line_number
-                        ),
-                    }
-                } else if is_str_deref_register(&word) {
-                    // Remove the leading and trailing parentheses, and first letter 's' from the register to access the number.
-                    // E.g. '(s3)' reffers to the 4th (starting from 0) register.
-                    let number = u8::from_str_radix(&word[2..3], 16);
-
-                    match number {
-                        Ok(number) => self.tokens.push(Token::DerefRegister(number)),
-                        Err(_) => panic!(
-                            "Unable to parse {} register, at line {}!",
-                            word, line_number
-                        ),
-                    }
-                } else if is_str_double_deref_register(&word) {
-                    let first = u8::from_str_radix(&word[2..3], 16);
-                    let second = u8::from_str_radix(&word[5..6], 16);
-
-                    match [first, second] {
-                        [Ok(first_number), Ok(second_number)] => self
-                            .tokens
-                            .push(Token::DoubleDerefRegister(first_number, second_number)),
-
-                        _ => panic!(
-                            "Unable to parse {} double register, at line {}!",
                             word, line_number
                         ),
                     }
