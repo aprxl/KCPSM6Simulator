@@ -8,15 +8,16 @@ fn main() {
     let mut p = Parser::new();
 
     let test_script = r#"
-        constant addr, 100'd
-        address addr
         main:
-            xor s1, s1
-            jump main
+            store s1, (s2)
     "#
     .to_string();
 
     t.tokenize(r.read_buffer_and_split(test_script).get_contents().clone());
+
+    for token in t.get_tokens() {
+        println!("{:?}", token);
+    }
 
     p.parse(t.get_tokens().clone());
 

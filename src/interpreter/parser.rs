@@ -94,6 +94,7 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Address(_) | Token::Label(_) => 'a',
             Token::Condition(_) => 'c',
             Token::Comma => 'C',
+            Token::Parentheses => 'p',
             Token::EndOfLine => 'e',
             _ => '.',
         };

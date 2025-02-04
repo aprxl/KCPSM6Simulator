@@ -3,18 +3,12 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-fn split_inclusive(input: &str, delimiter: char) -> Vec<String> {
+fn split_inclusive(input: &str, delimiter: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut start = 0;
 
-    // TODO: Hacky fix to skip DoubleDerefRegister, since we want to keep it as a word.
-    if input.starts_with("(") && input.ends_with(")") {
-        tokens.push(input.to_string());
-        return tokens;
-    }
-
     for (i, c) in input.char_indices() {
-        if c == delimiter {
+        if delimiter.contains(c) {
             // Push the substring before the delimiter
             if start < i {
                 tokens.push(input[start..i].to_string());
@@ -124,7 +118,7 @@ impl Reader {
 
             // Split each word into tokens now using a comma as delimiter, and keep the comma, using the 'split_inclusive' method.
             for word in words {
-                tokens.extend(split_inclusive(word.clone().as_str(), ','))
+                tokens.extend(split_inclusive(word.clone().as_str(), ",()"))
             }
 
             self.contents.push(tokens);

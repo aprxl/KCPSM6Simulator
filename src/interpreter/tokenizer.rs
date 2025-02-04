@@ -30,6 +30,7 @@ pub enum Token {
     AddressDirective,
     NameregDirective,
     Comma,
+    Parentheses,
     EndOfLine,
 }
 
@@ -213,6 +214,8 @@ impl Tokenizer {
 
                 if word == "," {
                     self.tokens.push(Token::Comma);
+                } else if word == "(" || word == ")" {
+                    self.tokens.push(Token::Parentheses);
                 } else if word.to_lowercase() == "c" {
                     self.tokens.push(Token::Condition(ConditionType::IfCarry));
                 } else if word.to_lowercase() == "nc" {
