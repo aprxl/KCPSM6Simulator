@@ -9,6 +9,14 @@ pub struct Constant(String, u32);
 #[derive(Debug, Clone)]
 pub struct Alias(String, u8);
 
+#[derive(Debug, Clone)]
+pub enum Register {
+    None(u8),
+    Not(u8),
+}
+
+// @TODO: Use the Register enum type instead of u8 for registers. Update
+// the entire code base accordingly :smiley:.
 #[derive(Debug)]
 #[rustfmt::skip]
 pub enum Instruction {
@@ -88,14 +96,12 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Word(_) => 'w',
             Token::Instruction(_) => 'i',
             Token::Register(_) => 'r',
-            //Token::DerefRegister(_) => 'd',
-            //Token::DoubleDerefRegister(_, _) => 'D',
             Token::Number(_, _) => 'n',
             Token::Address(_) | Token::Label(_) => 'a',
             Token::Condition(_) => 'c',
             Token::Comma => 'C',
             Token::Parentheses => 'p',
-            Token::EndOfLine => 'e',
+            Token::Tilda => continue,
             _ => '.',
         };
 
@@ -129,26 +135,29 @@ fn instr_condition(token_list: &Vec<Token>) -> Instruction {
 }
 
 fn instr_reg_reg(token_list: &Vec<Token>) -> Instruction {
+    let match_instruction = |instr: &str, lhs: u8, rhs: u8| match instr {
+        "add" => Instruction::Add { lhs, rhs },
+        "addcy" => Instruction::AddCarry { lhs, rhs },
+        "and" => Instruction::And { lhs, rhs },
+        "compare" => Instruction::Compare { lhs, rhs },
+        "comparecy" => Instruction::CompareCarry { lhs, rhs },
+        "load" => Instruction::Load { lhs, rhs },
+        "or" => Instruction::Or { lhs, rhs },
+        "star" => Instruction::Star { lhs, rhs },
+        "sub" => Instruction::Subtract { lhs, rhs },
+        "subcy" => Instruction::SubtractCarry { lhs, rhs },
+        "test" => Instruction::Test { lhs, rhs },
+        "testcy" => Instruction::TestCarry { lhs, rhs },
+        "xor" => Instruction::Xor { lhs, rhs },
+        _ => panic!("Unable to parse line!"),
+    };
+
     match token_list.as_slice() {
         [Token::Instruction(instr), Token::Register(lhs), _, Token::Register(rhs)] => {
-            let lhs = *lhs;
-            let rhs = *rhs;
-            match instr.as_str() {
-                "add" => Instruction::Add { lhs, rhs },
-                "addcy" => Instruction::AddCarry { lhs, rhs },
-                "and" => Instruction::And { lhs, rhs },
-                "compare" => Instruction::Compare { lhs, rhs },
-                "comparecy" => Instruction::CompareCarry { lhs, rhs },
-                "load" => Instruction::Load { lhs, rhs },
-                "or" => Instruction::Or { lhs, rhs },
-                "star" => Instruction::Star { lhs, rhs },
-                "sub" => Instruction::Subtract { lhs, rhs },
-                "subcy" => Instruction::SubtractCarry { lhs, rhs },
-                "test" => Instruction::Test { lhs, rhs },
-                "testcy" => Instruction::TestCarry { lhs, rhs },
-                "xor" => Instruction::Xor { lhs, rhs },
-                _ => panic!("Unable to parse line!"),
-            }
+            match_instruction(instr.as_str(), *lhs, *rhs)
+        }
+        [Token::Instruction(instr), Token::Register(lhs), _, Token::Tilda, Token::Register(rhs)] => {
+            match_instruction(instr.as_str(), *lhs, *rhs)
         }
         _ => panic!("Unable to parse line!"),
     }

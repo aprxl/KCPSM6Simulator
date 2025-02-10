@@ -28,6 +28,7 @@ pub enum Token {
     AddressDirective,
     NameregDirective,
     Comma,
+    Tilda, // @TODO: Add support for the NOT operator.
     Parentheses,
     EndOfLine,
 }
@@ -204,30 +205,27 @@ impl Tokenizer {
 
     pub fn tokenize(&mut self, file_contents: Vec<Vec<String>>) -> &mut Tokenizer {
         for (line_number, line) in file_contents.iter().enumerate() {
-            for (word_number, word) in line.iter().enumerate() {
-                // Comments are filtered out by the Reader.
-                // if is_str_begin_of_comment(&word) {
-                //     break;
-                // }
-
+            for (_word_number, word) in line.iter().enumerate() {
                 if word == "," {
                     self.tokens.push(Token::Comma);
+                } else if word == "~" {
+                    self.tokens.push(Token::Tilda);
                 } else if word == "(" || word == ")" {
                     self.tokens.push(Token::Parentheses);
-                } else if word.to_lowercase() == "c" {
+                } else if word == "c" {
                     self.tokens.push(Token::Condition(ConditionType::IfCarry));
-                } else if word.to_lowercase() == "nc" {
+                } else if word == "nc" {
                     self.tokens
                         .push(Token::Condition(ConditionType::IfNonCarry));
-                } else if word.to_lowercase() == "z" {
+                } else if word == "z" {
                     self.tokens.push(Token::Condition(ConditionType::IfZero));
-                } else if word.to_lowercase() == "nz" {
+                } else if word == "nz" {
                     self.tokens.push(Token::Condition(ConditionType::IfNonZero));
-                } else if word.to_lowercase() == "constant" {
+                } else if word == "constant" {
                     self.tokens.push(Token::ConstantDirective)
-                } else if word.to_lowercase() == "address" {
+                } else if word == "address" {
                     self.tokens.push(Token::AddressDirective);
-                } else if word.to_lowercase() == "namereg" {
+                } else if word == "namereg" {
                     self.tokens.push(Token::NameregDirective);
                 } else if is_str_instruction(&word) {
                     self.tokens.push(Token::Instruction(word.clone()));

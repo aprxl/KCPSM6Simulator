@@ -8,11 +8,8 @@ fn main() {
     let mut p = Parser::new();
 
     let test_script = r#"
-        namereg s1, t1
-        namereg s2, t2
         main:
-            store s3, (s3)
-            jump@ (t1, t2)
+            AND s1, ~s2
     "#
     .to_string();
 
