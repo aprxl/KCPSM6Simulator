@@ -28,6 +28,15 @@
   - [ ] Code analysis (timing etc.)
   - [ ] Settings
 
+### Known issues
 
+- [ ] The parser doesn't fully support all known Picoblaze functionalities
+  - [ ] NOT operator
+  - [ ] Strings
+  - [ ] Tables
+  - [ ] Include directive
+  - [ ] Environment variables
+  - [ ] INST directive
+  - [ ] DEFAULT_JUMP directive
 
 

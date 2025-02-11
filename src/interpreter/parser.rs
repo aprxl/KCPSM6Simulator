@@ -9,12 +9,6 @@ pub struct Constant(String, u32);
 #[derive(Debug, Clone)]
 pub struct Alias(String, u8);
 
-#[derive(Debug, Clone)]
-pub enum Register {
-    None(u8),
-    Not(u8),
-}
-
 // @TODO: Use the Register enum type instead of u8 for registers. Update
 // the entire code base accordingly :smiley:.
 #[derive(Debug)]
