@@ -1,4 +1,4 @@
-use interpreter::{parser::*, reader::*, tokenizer::*};
+use interpreter::{interpreter::*, parser::*, reader::*, tokenizer::*};
 
 pub mod interpreter;
 
@@ -6,10 +6,14 @@ fn main() {
     let mut r = Reader::new();
     let mut t = Tokenizer::new();
     let mut p = Parser::new();
+    let mut sim = SimulationContext::new();
 
     let test_script = r#"
+        namereg s1, t
         main:
-            AND s1, ~s2
+            AND t, s2
+        ta:
+            XOR s2, 01
     "#
     .to_string();
 
@@ -17,19 +21,6 @@ fn main() {
 
     p.parse(t.get_tokens().clone());
 
-    for (addr, instr) in p.get_instructions() {
-        println!("0x{:x} ({}) {:?}", addr, addr, instr);
-    }
-
-    for label in p.get_labels() {
-        println!("{:?}", label);
-    }
-
-    for con in p.get_constants() {
-        println!("{:?}", con);
-    }
-
-    for al in p.get_aliases() {
-        println!("{:?}", al);
-    }
+    sim.initialize_instructions(p.get_instructions().clone())
+        .run();
 }

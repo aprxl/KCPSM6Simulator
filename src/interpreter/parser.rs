@@ -11,7 +11,7 @@ pub struct Alias(String, u8);
 
 // @TODO: Use the Register enum type instead of u8 for registers. Update
 // the entire code base accordingly :smiley:.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[rustfmt::skip]
 pub enum Instruction {
     None,
@@ -95,7 +95,7 @@ fn convert_tokens_into_string(token_list: &Vec<Token>) -> String {
             Token::Condition(_) => 'c',
             Token::Comma => 'C',
             Token::Parentheses => 'p',
-            Token::Tilda => continue,
+            Token::Tilda => 't',
             _ => '.',
         };
 

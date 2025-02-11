@@ -38,5 +38,6 @@
   - [ ] Environment variables
   - [ ] INST directive
   - [ ] DEFAULT_JUMP directive
+  - [ ] Predefined constants
 
 
