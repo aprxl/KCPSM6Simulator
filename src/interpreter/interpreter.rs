@@ -1,4 +1,23 @@
-use crate::Instruction;
+use crate::{instructions::*, Instruction};
+
+use std::io::{Error, ErrorKind};
+
+#[derive(Debug, PartialEq)]
+pub struct SimulationUpdate {
+    pub registers: [u8; 16],
+    pub zero: bool,
+    pub carry: bool,
+}
+
+impl SimulationUpdate {
+    pub fn new(ctx: &SimulationContext) -> SimulationUpdate {
+        SimulationUpdate {
+            registers: ctx.get_registers(),
+            zero: ctx.get_zero_flag(),
+            carry: ctx.get_carry_flag(),
+        }
+    }
+}
 
 pub struct SimulationContext {
     instructions: Vec<(usize, Instruction)>,
@@ -18,6 +37,22 @@ impl SimulationContext {
             temp: 0,
             zero: false,
             carry: false,
+        }
+    }
+
+    pub fn new_with_params(
+        registers: [u8; 16],
+        temp: u8,
+        zero: bool,
+        carry: bool,
+    ) -> SimulationContext {
+        SimulationContext {
+            instructions: Vec::new(),
+            program_counter: 0,
+            registers,
+            temp,
+            zero,
+            carry,
         }
     }
 
@@ -49,12 +84,18 @@ impl SimulationContext {
         self
     }
 
-    pub fn run(&mut self) -> Result<(), String> {
+    pub fn run(&mut self) -> Result<(), Error> {
         // Ensure that all processor flags and registers are reset.
         self.reset();
 
+        self.registers[1] = 0b00001111;
+
         for (addr, i) in &self.instructions {
-            self.execute_instruction(i.clone())?;
+            let update = self.execute_instruction(i.clone())?;
+
+            self.registers = update.registers;
+            self.zero = update.zero;
+            self.carry = update.carry;
         }
 
         Ok(())
@@ -81,19 +122,27 @@ impl SimulationContext {
     }
 
     pub fn get_register(&self, index: usize) -> Option<u8> {
-        if index < 0 || index > 16 {
+        if index > 16 {
             return None;
         }
 
         Some(self.registers[index])
     }
 
-    fn execute_instruction(&mut self, instruction: Instruction) -> Result<(), String> {
+    fn execute_instruction(&self, instruction: Instruction) -> Result<SimulationUpdate, Error> {
         match instruction {
-            Instruction::And { lhs, rhs } => todo!(),
-            _ => unreachable!(),
+            Instruction::Load { lhs, rhs } => load::register_register(self, lhs, rhs),
+            Instruction::LoadConstant { lhs, rhs } => load::register_constant(self, lhs, rhs),
+            Instruction::And { lhs, rhs } => and::register_register(self, lhs, rhs),
+            Instruction::AndConstant { lhs, rhs } => and::register_constant(self, lhs, rhs),
+            Instruction::Or { lhs, rhs } => or::register_register(self, lhs, rhs),
+            Instruction::OrConstant { lhs, rhs } => or::register_constant(self, lhs, rhs),
+            Instruction::Xor { lhs, rhs } => xor::register_register(self, lhs, rhs),
+            Instruction::XorConstant { lhs, rhs } => xor::register_constant(self, lhs, rhs),
+            _ => Err(Error::new(
+                ErrorKind::Unsupported,
+                "Unable to run instruction",
+            )),
         }
-
-        Ok(())
     }
 }

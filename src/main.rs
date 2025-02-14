@@ -1,19 +1,22 @@
 use interpreter::{interpreter::*, parser::*, reader::*, tokenizer::*};
 
+#[path = "interpreter/mod.rs"]
 pub mod interpreter;
 
-fn main() {
+#[path = "interpreter/instructions/mod.rs"]
+pub mod instructions;
+
+fn main() -> std::io::Result<()> {
     let mut r = Reader::new();
     let mut t = Tokenizer::new();
     let mut p = Parser::new();
     let mut sim = SimulationContext::new();
 
     let test_script = r#"
-        namereg s1, t
         main:
-            AND t, s2
-        ta:
-            XOR s2, 01
+            LOAD s1, 00001111'b
+            LOAD s2, 00011100'b
+            XOR s1, s2
     "#
     .to_string();
 
@@ -22,5 +25,12 @@ fn main() {
     p.parse(t.get_tokens().clone());
 
     sim.initialize_instructions(p.get_instructions().clone())
-        .run();
+        .run()?;
+
+    println!(
+        "{:b}",
+        sim.get_register(1).expect("Unable to get first register")
+    );
+
+    Ok(())
 }
