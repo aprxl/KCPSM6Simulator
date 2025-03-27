@@ -15,8 +15,9 @@ fn main() -> std::io::Result<()> {
     let test_script = r#"
         main:
             LOAD s1, 255'd
-            LOAD s2, 2'd
+            LOAD s2, 1'd
             ADD s1, s2
+            ADDCY s1, 1'd
     "#
     .to_string();
 

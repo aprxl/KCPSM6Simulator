@@ -139,6 +139,10 @@ impl SimulationContext {
             Instruction::XorConstant { lhs, rhs } => xor::register_constant(self, lhs, rhs),
             Instruction::Add { lhs, rhs } => add::register_register(self, lhs, rhs),
             Instruction::AddConstant { lhs, rhs } => add::register_constant(self, lhs, rhs),
+            Instruction::AddCarry { lhs, rhs } => add_carry::register_register(self, lhs, rhs),
+            Instruction::AddCarryConstant { lhs, rhs } => {
+                add_carry::register_constant(self, lhs, rhs)
+            }
             _ => Err(Error::new(
                 ErrorKind::Unsupported,
                 "Unable to run instruction",
