@@ -14,9 +14,9 @@ fn main() -> std::io::Result<()> {
 
     let test_script = r#"
         main:
-            LOAD s1, 00001111'b
-            LOAD s2, 00011100'b
-            XOR s1, s2
+            LOAD s1, 255'd
+            LOAD s2, 2'd
+            ADD s1, s2
     "#
     .to_string();
 
@@ -28,7 +28,7 @@ fn main() -> std::io::Result<()> {
         .run()?;
 
     println!(
-        "{:b}",
+        "{0} {0:b}",
         sim.get_register(1).expect("Unable to get first register")
     );
 

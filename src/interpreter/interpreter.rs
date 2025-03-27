@@ -88,8 +88,6 @@ impl SimulationContext {
         // Ensure that all processor flags and registers are reset.
         self.reset();
 
-        self.registers[1] = 0b00001111;
-
         for (addr, i) in &self.instructions {
             let update = self.execute_instruction(i.clone())?;
 
@@ -139,6 +137,8 @@ impl SimulationContext {
             Instruction::OrConstant { lhs, rhs } => or::register_constant(self, lhs, rhs),
             Instruction::Xor { lhs, rhs } => xor::register_register(self, lhs, rhs),
             Instruction::XorConstant { lhs, rhs } => xor::register_constant(self, lhs, rhs),
+            Instruction::Add { lhs, rhs } => add::register_register(self, lhs, rhs),
+            Instruction::AddConstant { lhs, rhs } => add::register_constant(self, lhs, rhs),
             _ => Err(Error::new(
                 ErrorKind::Unsupported,
                 "Unable to run instruction",
