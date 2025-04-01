@@ -25,7 +25,6 @@ pub struct SimulationContext {
     instructions: Vec<(usize, Instruction)>,
     registers: [u8; 16],
     program_counter: u32,
-    temp: u8,
     zero: bool,
     carry: bool,
 }
@@ -36,7 +35,6 @@ impl SimulationContext {
             instructions: Vec::new(),
             registers: [0u8; 16],
             program_counter: 0,
-            temp: 0,
             zero: false,
             carry: false,
         }
@@ -52,7 +50,6 @@ impl SimulationContext {
             instructions: Vec::new(),
             program_counter: 0,
             registers,
-            temp,
             zero,
             carry,
         }
@@ -63,7 +60,6 @@ impl SimulationContext {
             instructions,
             registers: [0u8; 16],
             program_counter: 0,
-            temp: 0,
             zero: false,
             carry: false,
         }
@@ -81,7 +77,6 @@ impl SimulationContext {
         self.registers = [0u8; 16];
         self.zero = false;
         self.carry = false;
-        self.temp = 0;
         self.program_counter = 0;
         self
     }
@@ -111,10 +106,6 @@ impl SimulationContext {
 
     pub fn get_program_counter(&self) -> u32 {
         self.program_counter
-    }
-
-    pub fn get_temporary_var(&self) -> u8 {
-        self.temp
     }
 
     pub fn get_registers(&self) -> [u8; 16] {
@@ -178,6 +169,12 @@ impl SimulationContext {
             }
             Instruction::SubtractCarryConstant { lhs, rhs } => {
                 subtract_carry::register_constant(self, lhs, rhs)
+            }
+            Instruction::Test { lhs, rhs } => test::register_register(self, lhs, rhs),
+            Instruction::TestConstant { lhs, rhs } => test::register_constant(self, lhs, rhs),
+            Instruction::TestCarry { lhs, rhs } => test_carry::register_register(self, lhs, rhs),
+            Instruction::TestCarryConstant { lhs, rhs } => {
+                test_carry::register_constant(self, lhs, rhs)
             }
             Instruction::RotateLeft { register } => rotate_left::register(self, register),
             Instruction::RotateRight { register } => rotate_right::register(self, register),

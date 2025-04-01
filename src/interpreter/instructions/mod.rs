@@ -9,4 +9,6 @@ pub mod shift_left;
 pub mod shift_right;
 pub mod subtract;
 pub mod subtract_carry;
+pub mod test;
+pub mod test_carry;
 pub mod xor;
