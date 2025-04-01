@@ -2,6 +2,8 @@ use crate::{instructions::*, Instruction};
 
 use std::io::{Error, ErrorKind};
 
+use super::helpers::ShiftMode;
+
 #[derive(Debug, PartialEq)]
 pub struct SimulationUpdate {
     pub registers: [u8; 16],
@@ -142,6 +144,18 @@ impl SimulationContext {
             Instruction::AddCarry { lhs, rhs } => add_carry::register_register(self, lhs, rhs),
             Instruction::AddCarryConstant { lhs, rhs } => {
                 add_carry::register_constant(self, lhs, rhs)
+            }
+            Instruction::ShiftLeftZero { register } => {
+                shift_left::register(self, register, ShiftMode::Number(0))
+            }
+            Instruction::ShiftLeftOne { register } => {
+                shift_left::register(self, register, ShiftMode::Number(1))
+            }
+            Instruction::ShiftLeftCarry { register } => {
+                shift_left::register(self, register, ShiftMode::Carry)
+            }
+            Instruction::ShiftLeftArth { register } => {
+                shift_left::register(self, register, ShiftMode::Repeat)
             }
             _ => Err(Error::new(
                 ErrorKind::Unsupported,

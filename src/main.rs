@@ -14,10 +14,8 @@ fn main() -> std::io::Result<()> {
 
     let test_script = r#"
         main:
-            LOAD s1, 255'd
-            LOAD s2, 1'd
-            ADD s1, s2
-            ADDCY s1, 1'd
+            LOAD s1, 00000011'b
+            SLX s1
     "#
     .to_string();
 
@@ -28,10 +26,9 @@ fn main() -> std::io::Result<()> {
     sim.initialize_instructions(p.get_instructions().clone())
         .run()?;
 
-    println!(
-        "{0} {0:b}",
-        sim.get_register(1).expect("Unable to get first register")
-    );
+    println!("{}", sim.get_carry_flag());
+
+    println!("{0} {0:b}", sim.get_register(1).unwrap());
 
     Ok(())
 }
