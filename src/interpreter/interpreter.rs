@@ -169,6 +169,8 @@ impl SimulationContext {
             Instruction::ShiftRightArth { register } => {
                 shift_right::register(self, register, ShiftMode::Repeat)
             }
+            Instruction::RotateLeft { register } => rotate_left::register(self, register),
+            Instruction::RotateRight { register } => rotate_right::register(self, register),
 
             _ => Err(Error::new(
                 ErrorKind::Unsupported,
