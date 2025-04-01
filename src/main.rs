@@ -14,8 +14,8 @@ fn main() -> std::io::Result<()> {
 
     let test_script = r#"
         main:
-            LOAD s1, 00000011'b
-            SLX s1
+            LOAD s1, 10000011'b
+            SRX s1
     "#
     .to_string();
 
@@ -25,8 +25,6 @@ fn main() -> std::io::Result<()> {
 
     sim.initialize_instructions(p.get_instructions().clone())
         .run()?;
-
-    println!("{}", sim.get_carry_flag());
 
     println!("{0} {0:b}", sim.get_register(1).unwrap());
 

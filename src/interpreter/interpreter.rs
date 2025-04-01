@@ -157,6 +157,19 @@ impl SimulationContext {
             Instruction::ShiftLeftArth { register } => {
                 shift_left::register(self, register, ShiftMode::Repeat)
             }
+            Instruction::ShiftRightZero { register } => {
+                shift_right::register(self, register, ShiftMode::Number(0))
+            }
+            Instruction::ShiftRightOne { register } => {
+                shift_right::register(self, register, ShiftMode::Number(1))
+            }
+            Instruction::ShiftRightCarry { register } => {
+                shift_right::register(self, register, ShiftMode::Carry)
+            }
+            Instruction::ShiftRightArth { register } => {
+                shift_right::register(self, register, ShiftMode::Repeat)
+            }
+
             _ => Err(Error::new(
                 ErrorKind::Unsupported,
                 "Unable to run instruction",
