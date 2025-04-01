@@ -169,6 +169,16 @@ impl SimulationContext {
             Instruction::ShiftRightArth { register } => {
                 shift_right::register(self, register, ShiftMode::Repeat)
             }
+            Instruction::Subtract { lhs, rhs } => subtract::register_register(self, lhs, rhs),
+            Instruction::SubtractConstant { lhs, rhs } => {
+                subtract::register_constant(self, lhs, rhs)
+            }
+            Instruction::SubtractCarry { lhs, rhs } => {
+                subtract_carry::register_register(self, lhs, rhs)
+            }
+            Instruction::SubtractCarryConstant { lhs, rhs } => {
+                subtract_carry::register_constant(self, lhs, rhs)
+            }
             Instruction::RotateLeft { register } => rotate_left::register(self, register),
             Instruction::RotateRight { register } => rotate_right::register(self, register),
 

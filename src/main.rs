@@ -14,8 +14,8 @@ fn main() -> std::io::Result<()> {
 
     let test_script = r#"
         main:
-            LOAD s1, 10000011'b
-            RR s1
+            LOAD s1, 03
+            SUBCY s1, 01
     "#
     .to_string();
 
