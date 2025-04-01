@@ -5,8 +5,13 @@ pub fn register(ctx: &SimulationContext, register: u8) -> Result<SimulationUpdat
     let mut update = SimulationUpdate::new(ctx);
     let mut register_value = ctx.get_register(register as usize).unwrap();
 
+    // Get the right-most bit and shift it all the way to the left:
+    // E.g. stating with 0b10000001. The right-most bit is 1, so we apply
+    // the mask and shift it by seven bits, getting the number 0b10000000.
     let rotated_bit = (register_value & 0b00000001) << 7;
 
+    // To rotate right, we shift it right first to create a new empty bit on the left.
+    // Then we simply add the rotated bit, finishing the rotation.
     register_value = (register_value >> 1).wrapping_add(rotated_bit);
 
     update.carry = rotated_bit > 0;

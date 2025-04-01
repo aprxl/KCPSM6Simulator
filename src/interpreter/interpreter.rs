@@ -174,7 +174,7 @@ impl SimulationContext {
 
             _ => Err(Error::new(
                 ErrorKind::Unsupported,
-                "Unable to run instruction",
+                "Unable to run instruction as there's no behavior defined for it.",
             )),
         }
     }

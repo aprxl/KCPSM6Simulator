@@ -23,9 +23,14 @@ pub fn register(
     let mut update = SimulationUpdate::new(ctx);
     let mut register_value = ctx.get_register(register as usize).unwrap();
 
+    // A left shift will always insert a new bit into the right, depending on which
+    // shift operation you use.
     let shift_value = get_shift_value(register_value, ctx.get_carry_flag(), mode);
+
+    // Check if the bit we're shifting out of the register is one. If so, set carry flag.
     let carry_value = register_value & (0b10000000);
 
+    // To shift the value, just use the left shift operator then add the new bit to the right.
     register_value = (register_value << 1).wrapping_add(shift_value);
 
     update.carry = if carry_value == 1 { true } else { false };
