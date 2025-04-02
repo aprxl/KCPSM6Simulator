@@ -3,6 +3,7 @@ pub mod add_carry;
 pub mod and;
 pub mod compare;
 pub mod compare_carry;
+pub mod jump;
 pub mod load;
 pub mod or;
 pub mod rotate_left;

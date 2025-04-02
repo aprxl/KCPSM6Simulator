@@ -119,6 +119,8 @@ impl SimulationContext {
 
             let update = self.execute_instruction(i.clone().unwrap())?;
 
+            println!("{}: {:?}", self.pc, i.clone().unwrap());
+
             self.registers = update.registers;
             self.zero = update.zero;
             self.carry = update.carry;
@@ -175,6 +177,10 @@ impl SimulationContext {
             Instruction::AddCarry { lhs, rhs } => add_carry::register_register(self, lhs, rhs),
             Instruction::AddCarryConstant { lhs, rhs } => {
                 add_carry::register_constant(self, lhs, rhs)
+            }
+            Instruction::Jump { address } => jump::address(self, address, None),
+            Instruction::JumpConditional { condition, address } => {
+                jump::address(self, address, Some(condition))
             }
             Instruction::ShiftLeftZero { register } => {
                 shift_left::register(self, register, ShiftMode::Number(0))

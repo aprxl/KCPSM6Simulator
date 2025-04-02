@@ -14,9 +14,10 @@ fn main() -> std::io::Result<()> {
 
     let test_script = r#"
         main:
-            LOAD s1,    00001111'b
-            COMPARECY s1, 00001111'b
-            LOAD s2, FF
+            LOAD s1, 00
+            JUMP 003
+            LOAD s1, 01
+            ADD s1, 00
     "#
     .to_string();
 
