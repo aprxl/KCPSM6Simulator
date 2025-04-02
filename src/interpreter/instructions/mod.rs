@@ -1,11 +1,13 @@
 pub mod add;
 pub mod add_carry;
 pub mod and;
+pub mod call;
 pub mod compare;
 pub mod compare_carry;
 pub mod jump;
 pub mod load;
 pub mod or;
+pub mod ret;
 pub mod rotate_left;
 pub mod rotate_right;
 pub mod shift_left;

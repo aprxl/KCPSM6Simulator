@@ -12,6 +12,8 @@ pub struct SimulationUpdate {
     pub zero: bool,
     pub carry: bool,
     pub pc: usize,
+    pub call_addr: Option<usize>,
+    pub ret_addr: bool,
 }
 
 impl SimulationUpdate {
@@ -21,6 +23,8 @@ impl SimulationUpdate {
             zero: ctx.get_zero_flag(),
             carry: ctx.get_carry_flag(),
             pc: ctx.get_program_counter() + 1,
+            call_addr: None,
+            ret_addr: false,
         }
     }
 
@@ -29,6 +33,8 @@ impl SimulationUpdate {
             registers: ctx.get_registers(),
             zero: ctx.get_zero_flag(),
             carry: ctx.get_carry_flag(),
+            call_addr: None,
+            ret_addr: false,
             pc,
         }
     }
@@ -41,6 +47,8 @@ impl Default for SimulationUpdate {
             zero: false,
             carry: false,
             pc: 0usize,
+            call_addr: None,
+            ret_addr: false,
         }
     }
 }
@@ -52,6 +60,7 @@ pub struct SimulationContext {
     pc: usize,
     zero: bool,
     carry: bool,
+    call_stack: Vec<usize>,
 }
 
 impl SimulationContext {
@@ -63,6 +72,7 @@ impl SimulationContext {
             pc: 0,
             zero: false,
             carry: false,
+            call_stack: vec![],
         }
     }
 
@@ -74,6 +84,7 @@ impl SimulationContext {
             registers,
             zero,
             carry,
+            call_stack: vec![],
         }
     }
 
@@ -91,6 +102,7 @@ impl SimulationContext {
             pc: 0,
             zero: false,
             carry: false,
+            call_stack: vec![],
         }
     }
 
@@ -113,6 +125,7 @@ impl SimulationContext {
         self.zero = false;
         self.carry = false;
         self.pc = 0;
+        self.call_stack = vec![];
         self
     }
 
@@ -136,6 +149,20 @@ impl SimulationContext {
             self.zero = update.zero;
             self.carry = update.carry;
             self.pc = update.pc;
+
+            // We just returned.
+            if update.ret_addr {
+                if let Some(ret_addr) = self.call_stack.pop() {
+                    self.pc = ret_addr;
+                }
+            }
+
+            // We just called to another routine.
+            if let Some(addr) = update.call_addr {
+                self.call_stack.push(addr);
+            }
+
+            println!("{}", self.call_stack.len());
         }
 
         Ok(())
@@ -145,12 +172,32 @@ impl SimulationContext {
         self.zero
     }
 
+    pub fn set_zero_flag(&mut self, zero: bool) {
+        self.zero = zero;
+    }
+
     pub fn get_carry_flag(&self) -> bool {
         self.carry
     }
 
+    pub fn set_carry_flag(&mut self, carry: bool) {
+        self.carry = carry;
+    }
+
     pub fn get_program_counter(&self) -> usize {
         self.pc
+    }
+
+    pub fn set_program_counter(&mut self, pc: usize) {
+        self.pc = pc;
+    }
+
+    pub fn get_call_stack(&self) -> &Vec<usize> {
+        &self.call_stack
+    }
+
+    pub fn add_to_call_stack_unrestricted(&mut self, addr: usize) {
+        self.call_stack.push(addr);
     }
 
     pub fn get_registers(&self) -> [u8; 16] {
@@ -165,12 +212,24 @@ impl SimulationContext {
         Some(self.registers[index])
     }
 
+    pub fn set_register(&mut self, index: usize, value: u8) {
+        if index > 16 {
+            return;
+        }
+
+        self.registers[index] = value;
+    }
+
     fn execute_instruction(&self, instruction: Instruction) -> Result<SimulationUpdate, Error> {
         match instruction {
             Instruction::Load { lhs, rhs } => load::register_register(self, lhs, rhs),
             Instruction::LoadConstant { lhs, rhs } => load::register_constant(self, lhs, rhs),
             Instruction::And { lhs, rhs } => and::register_register(self, lhs, rhs),
             Instruction::AndConstant { lhs, rhs } => and::register_constant(self, lhs, rhs),
+            Instruction::Call { address } => call::address(self, address, None),
+            Instruction::CallConditional { condition, address } => {
+                call::address(self, address, Some(condition))
+            }
             Instruction::Compare { lhs, rhs } => compare::register_register(self, lhs, rhs),
             Instruction::CompareConstant { lhs, rhs } => compare::register_constant(self, lhs, rhs),
             Instruction::CompareCarry { lhs, rhs } => {
@@ -193,6 +252,8 @@ impl SimulationContext {
             Instruction::JumpConditional { condition, address } => {
                 jump::address(self, address, Some(condition))
             }
+            Instruction::Return => ret::default(self, None),
+            Instruction::ReturnCondition { condition } => ret::default(self, Some(condition)),
             Instruction::ShiftLeftZero { register } => {
                 shift_left::register(self, register, ShiftMode::Number(0))
             }
