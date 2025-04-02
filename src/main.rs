@@ -16,6 +16,7 @@ fn main() -> std::io::Result<()> {
         main:
             LOAD s1,    00001111'b
             COMPARECY s1, 00001111'b
+            LOAD s2, FF
     "#
     .to_string();
 
@@ -27,9 +28,10 @@ fn main() -> std::io::Result<()> {
         .run()?;
 
     println!(
-        "zero: {}, carry: {}",
+        "zero: {}, carry: {}, pc: {}",
         sim.get_zero_flag(),
-        sim.get_carry_flag()
+        sim.get_carry_flag(),
+        sim.get_program_counter()
     );
 
     println!("{0} {0:b}", sim.get_register(1).unwrap());

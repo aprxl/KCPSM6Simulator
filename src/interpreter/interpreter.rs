@@ -4,12 +4,14 @@ use std::io::{Error, ErrorKind};
 
 use super::helpers::ShiftMode;
 
+const PROGRAM_MEMORY_SIZE: usize = 1024usize;
+
 #[derive(Debug, PartialEq)]
 pub struct SimulationUpdate {
     pub registers: [u8; 16],
     pub zero: bool,
     pub carry: bool,
-    pub pc: u32,
+    pub pc: usize,
 }
 
 impl SimulationUpdate {
@@ -22,7 +24,7 @@ impl SimulationUpdate {
         }
     }
 
-    pub fn new_with_pc(ctx: &SimulationContext, pc: u32) -> SimulationUpdate {
+    pub fn new_with_pc(ctx: &SimulationContext, pc: usize) -> SimulationUpdate {
         SimulationUpdate {
             registers: ctx.get_registers(),
             zero: ctx.get_zero_flag(),
@@ -33,9 +35,10 @@ impl SimulationUpdate {
 }
 
 pub struct SimulationContext {
-    instructions: Vec<(usize, Instruction)>,
+    //instructions_: Vec<(usize, Instruction)>,
+    instructions: Vec<Option<Instruction>>,
     registers: [u8; 16],
-    pc: u32,
+    pc: usize,
     zero: bool,
     carry: bool,
 }
@@ -43,7 +46,8 @@ pub struct SimulationContext {
 impl SimulationContext {
     pub fn new() -> SimulationContext {
         SimulationContext {
-            instructions: Vec::new(),
+            //instructions_: Vec::new(),
+            instructions: vec![None; PROGRAM_MEMORY_SIZE],
             registers: [0u8; 16],
             pc: 0,
             zero: false,
@@ -53,7 +57,8 @@ impl SimulationContext {
 
     pub fn new_with_params(registers: [u8; 16], zero: bool, carry: bool) -> SimulationContext {
         SimulationContext {
-            instructions: Vec::new(),
+            //instructions_: Vec::new(),
+            instructions: vec![None; PROGRAM_MEMORY_SIZE],
             pc: 0,
             registers,
             zero,
@@ -62,8 +67,15 @@ impl SimulationContext {
     }
 
     pub fn new_with_instructions(instructions: Vec<(usize, Instruction)>) -> SimulationContext {
+        let mut instr_list: Vec<Option<Instruction>> = vec![None; PROGRAM_MEMORY_SIZE];
+
+        for (addr, i) in instructions {
+            instr_list[addr] = Some(i);
+        }
+
         SimulationContext {
-            instructions,
+            //instructions_: instructions,
+            instructions: instr_list,
             registers: [0u8; 16],
             pc: 0,
             zero: false,
@@ -75,7 +87,13 @@ impl SimulationContext {
         &mut self,
         instructions: Vec<(usize, Instruction)>,
     ) -> &mut SimulationContext {
-        self.instructions = instructions;
+        let mut instr_list: Vec<Option<Instruction>> = vec![None; PROGRAM_MEMORY_SIZE];
+
+        for (addr, i) in instructions {
+            instr_list[addr] = Some(i);
+        }
+
+        self.instructions = instr_list;
         self
     }
 
@@ -91,8 +109,15 @@ impl SimulationContext {
         // Ensure that all processor flags and registers are reset.
         self.reset();
 
-        for (addr, i) in &self.instructions {
-            let update = self.execute_instruction(i.clone())?;
+        loop {
+            let i = &self.instructions[self.pc];
+
+            if i.is_none() {
+                eprintln!("The program ended because it reached an invalid address.");
+                break;
+            }
+
+            let update = self.execute_instruction(i.clone().unwrap())?;
 
             self.registers = update.registers;
             self.zero = update.zero;
@@ -111,7 +136,7 @@ impl SimulationContext {
         self.carry
     }
 
-    pub fn get_program_counter(&self) -> u32 {
+    pub fn get_program_counter(&self) -> usize {
         self.pc
     }
 
