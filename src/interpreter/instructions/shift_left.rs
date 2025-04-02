@@ -53,7 +53,7 @@ mod tests {
 
         end_registers[0] = 0b0000100;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register(&context, 0, ShiftMode::Number(0)).unwrap(),
@@ -61,6 +61,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
+                pc: 1
             }
         );
     }
@@ -74,7 +75,7 @@ mod tests {
 
         end_registers[0] = 0b0000101;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register(&context, 0, ShiftMode::Number(1)).unwrap(),
@@ -82,6 +83,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
+                pc: 1
             }
         );
     }
@@ -95,7 +97,7 @@ mod tests {
 
         end_registers[0] = 0b0000101;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, true);
+        let context = SimulationContext::new_with_params(registers, false, true);
 
         assert_eq!(
             register(&context, 0, ShiftMode::Carry).unwrap(),
@@ -103,6 +105,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
+                pc: 1
             }
         );
     }
@@ -116,7 +119,7 @@ mod tests {
 
         end_registers[0] = 0b00000111;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register(&context, 0, ShiftMode::Repeat).unwrap(),
@@ -124,6 +127,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
+                pc: 1
             }
         );
     }

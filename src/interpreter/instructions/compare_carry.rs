@@ -53,7 +53,7 @@ mod tests {
         end_registers[0] = 0b00000101;
         end_registers[1] = 0b00000001;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register_register(&context, 0, 1).unwrap(),
@@ -61,6 +61,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
+                pc: 1
             }
         );
     }
@@ -76,7 +77,7 @@ mod tests {
         end_registers[0] = 0b00000101;
         end_registers[1] = 0b00000100;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, true);
+        let context = SimulationContext::new_with_params(registers, false, true);
 
         assert_eq!(
             register_register(&context, 0, 1).unwrap(),
@@ -84,6 +85,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: true,
+                pc: 1
             }
         );
     }
@@ -97,7 +99,7 @@ mod tests {
 
         end_registers[0] = 0b00000101;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register_constant(&context, 0, 5).unwrap(),
@@ -105,6 +107,7 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: true,
+                pc: 1
             }
         );
     }
@@ -118,7 +121,7 @@ mod tests {
 
         end_registers[0] = 0b00000101;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, true);
+        let context = SimulationContext::new_with_params(registers, false, true);
 
         assert_eq!(
             register_constant(&context, 0, 5).unwrap(),
@@ -126,6 +129,7 @@ mod tests {
                 registers: end_registers,
                 carry: true,
                 zero: false,
+                pc: 1
             }
         );
     }
@@ -139,7 +143,7 @@ mod tests {
 
         end_registers[0] = 0;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register_constant(&context, 0, 1).unwrap(),
@@ -147,6 +151,7 @@ mod tests {
                 registers: end_registers,
                 carry: true,
                 zero: false,
+                pc: 1
             }
         );
     }

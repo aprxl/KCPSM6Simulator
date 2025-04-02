@@ -9,6 +9,7 @@ pub struct SimulationUpdate {
     pub registers: [u8; 16],
     pub zero: bool,
     pub carry: bool,
+    pub pc: u32,
 }
 
 impl SimulationUpdate {
@@ -17,6 +18,16 @@ impl SimulationUpdate {
             registers: ctx.get_registers(),
             zero: ctx.get_zero_flag(),
             carry: ctx.get_carry_flag(),
+            pc: ctx.get_program_counter() + 1,
+        }
+    }
+
+    pub fn new_with_pc(ctx: &SimulationContext, pc: u32) -> SimulationUpdate {
+        SimulationUpdate {
+            registers: ctx.get_registers(),
+            zero: ctx.get_zero_flag(),
+            carry: ctx.get_carry_flag(),
+            pc,
         }
     }
 }
@@ -24,7 +35,7 @@ impl SimulationUpdate {
 pub struct SimulationContext {
     instructions: Vec<(usize, Instruction)>,
     registers: [u8; 16],
-    program_counter: u32,
+    pc: u32,
     zero: bool,
     carry: bool,
 }
@@ -34,21 +45,16 @@ impl SimulationContext {
         SimulationContext {
             instructions: Vec::new(),
             registers: [0u8; 16],
-            program_counter: 0,
+            pc: 0,
             zero: false,
             carry: false,
         }
     }
 
-    pub fn new_with_params(
-        registers: [u8; 16],
-        temp: u8,
-        zero: bool,
-        carry: bool,
-    ) -> SimulationContext {
+    pub fn new_with_params(registers: [u8; 16], zero: bool, carry: bool) -> SimulationContext {
         SimulationContext {
             instructions: Vec::new(),
-            program_counter: 0,
+            pc: 0,
             registers,
             zero,
             carry,
@@ -59,7 +65,7 @@ impl SimulationContext {
         SimulationContext {
             instructions,
             registers: [0u8; 16],
-            program_counter: 0,
+            pc: 0,
             zero: false,
             carry: false,
         }
@@ -77,7 +83,7 @@ impl SimulationContext {
         self.registers = [0u8; 16];
         self.zero = false;
         self.carry = false;
-        self.program_counter = 0;
+        self.pc = 0;
         self
     }
 
@@ -91,6 +97,7 @@ impl SimulationContext {
             self.registers = update.registers;
             self.zero = update.zero;
             self.carry = update.carry;
+            self.pc = update.pc;
         }
 
         Ok(())
@@ -105,7 +112,7 @@ impl SimulationContext {
     }
 
     pub fn get_program_counter(&self) -> u32 {
-        self.program_counter
+        self.pc
     }
 
     pub fn get_registers(&self) -> [u8; 16] {

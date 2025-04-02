@@ -34,7 +34,7 @@ mod tests {
 
         end_registers[0] = 0b11100100;
 
-        let context = SimulationContext::new_with_params(registers, 0, false, false);
+        let context = SimulationContext::new_with_params(registers, false, false);
 
         assert_eq!(
             register(&context, 0).unwrap(),
@@ -42,6 +42,7 @@ mod tests {
                 registers: end_registers,
                 carry: true,
                 zero: false,
+                pc: 1
             }
         );
     }
