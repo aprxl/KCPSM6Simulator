@@ -13,27 +13,34 @@ fn main() -> std::io::Result<()> {
     let mut sim = SimulationContext::new();
 
     let test_script = r#"
+        NAMEREG sE, arg1
+        NAMEREG sF, arg2
+        NAMEREG sD, temp
+
         JUMP main
 
-        addi:
-            LOAD s1, 08
-        add_loop:
-            COMPARE s1, 00
-            JUMP Z, add_end
-            ADD s0, 01
-            SUB s1, 01
-            JUMP add_loop
-        add_end:
+        mult:
+            LOAD temp, arg1
+        mult_loop:
+            SUB arg2, 01
+            JUMP Z, mult_end
+            ADD arg1, temp
+            JUMP mult_loop
+        mult_end:
             RETURN
 
         main:
-            LOAD s0, 00
-            CALL addi
-            ADD s0, 01
+            LOAD arg1, 08
+            LOAD arg2, 06
+            CALL mult
         "#
     .to_string();
 
-    t.tokenize(r.read_buffer_and_split(test_script).get_contents().clone());
+    t.tokenize(
+        r.read_file_and_split("tests/test.s".to_string())
+            .get_contents()
+            .clone(),
+    );
 
     p.parse(t.get_tokens().clone());
 
@@ -47,7 +54,7 @@ fn main() -> std::io::Result<()> {
         sim.get_program_counter()
     );
 
-    println!("{0} {0:b}", sim.get_register(0).unwrap());
+    println!("arg1: {0} {0:b}", sim.get_register(14).unwrap());
 
     Ok(())
 }

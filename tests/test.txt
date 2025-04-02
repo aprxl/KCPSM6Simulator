@@ -1,8 +1,0 @@
-constant abc, 100'd
-constant def, abc
-namereg s1, first
-namereg first, cesar
-
-address abc
-main:
-  xor cesar, def

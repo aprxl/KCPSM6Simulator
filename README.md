@@ -28,6 +28,10 @@
   - [ ] Code analysis (timing etc.)
   - [ ] Settings
 
+### Requirements
+
+- [ ] Frequency/est. time of execution
+
 ### Known issues
 
 - [ ] The parser doesn't fully support all known Picoblaze functionalities

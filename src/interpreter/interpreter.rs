@@ -143,8 +143,6 @@ impl SimulationContext {
 
             let update = self.execute_instruction(i.clone().unwrap())?;
 
-            println!("{}: {:?}", self.pc, i.clone().unwrap());
-
             self.registers = update.registers;
             self.zero = update.zero;
             self.carry = update.carry;
@@ -161,8 +159,6 @@ impl SimulationContext {
             if let Some(addr) = update.call_addr {
                 self.call_stack.push(addr);
             }
-
-            println!("{}", self.call_stack.len());
         }
 
         Ok(())
