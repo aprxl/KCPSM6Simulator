@@ -59,7 +59,8 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -81,7 +82,8 @@ mod tests {
                 registers: end_registers,
                 carry: false,
                 zero: false,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -103,7 +105,8 @@ mod tests {
                 registers: end_registers,
                 carry: true,
                 zero: true,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }

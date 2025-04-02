@@ -47,7 +47,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 25
+                pc: 25,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -62,7 +63,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 25
+                pc: 25,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -77,7 +79,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: true,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -92,7 +95,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: true,
-                pc: 25
+                pc: 25,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -107,7 +111,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -122,7 +127,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: true,
                 zero: false,
-                pc: 25
+                pc: 25,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -137,7 +143,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -152,7 +159,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 25
+                pc: 25,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -167,7 +175,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: true,
                 zero: true,
-                pc: 1
+                pc: 1,
+                ..SimulationUpdate::default()
             }
         );
     }
@@ -183,7 +192,8 @@ mod tests {
                 registers: [0u8; 16],
                 carry: false,
                 zero: false,
-                pc: 1025
+                pc: 1025,
+                ..SimulationUpdate::default()
             }
         );
     }

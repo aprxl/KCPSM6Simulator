@@ -34,6 +34,17 @@ impl SimulationUpdate {
     }
 }
 
+impl Default for SimulationUpdate {
+    fn default() -> Self {
+        Self {
+            registers: [0u8; 16],
+            zero: false,
+            carry: false,
+            pc: 0usize,
+        }
+    }
+}
+
 pub struct SimulationContext {
     //instructions_: Vec<(usize, Instruction)>,
     instructions: Vec<Option<Instruction>>,
