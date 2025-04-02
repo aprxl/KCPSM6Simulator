@@ -126,6 +126,14 @@ impl SimulationContext {
             Instruction::LoadConstant { lhs, rhs } => load::register_constant(self, lhs, rhs),
             Instruction::And { lhs, rhs } => and::register_register(self, lhs, rhs),
             Instruction::AndConstant { lhs, rhs } => and::register_constant(self, lhs, rhs),
+            Instruction::Compare { lhs, rhs } => compare::register_register(self, lhs, rhs),
+            Instruction::CompareConstant { lhs, rhs } => compare::register_constant(self, lhs, rhs),
+            Instruction::CompareCarry { lhs, rhs } => {
+                compare_carry::register_register(self, lhs, rhs)
+            }
+            Instruction::CompareCarryConstant { lhs, rhs } => {
+                compare_carry::register_constant(self, lhs, rhs)
+            }
             Instruction::Or { lhs, rhs } => or::register_register(self, lhs, rhs),
             Instruction::OrConstant { lhs, rhs } => or::register_constant(self, lhs, rhs),
             Instruction::Xor { lhs, rhs } => xor::register_register(self, lhs, rhs),
