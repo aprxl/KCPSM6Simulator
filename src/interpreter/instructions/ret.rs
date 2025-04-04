@@ -1,8 +1,6 @@
 use crate::{ConditionType, SimulationContext, SimulationUpdate};
 use std::io::{Error, ErrorKind};
 
-use super::call;
-
 pub fn default(
     ctx: &SimulationContext,
     condition: Option<ConditionType>,

@@ -1,5 +1,5 @@
 use crate::{SimulationContext, SimulationUpdate};
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 
 pub fn register_register(
     ctx: &SimulationContext,

@@ -1,5 +1,5 @@
 use crate::{SimulationContext, SimulationUpdate};
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 
 pub fn register_register(
     ctx: &SimulationContext,
@@ -31,7 +31,7 @@ pub fn register_constant(
 
     let carry_dec = if ctx.get_carry_flag() { 1 } else { 0 };
 
-    let result = (first_register.wrapping_sub((rhs as u8))).wrapping_sub(carry_dec);
+    let result = (first_register.wrapping_sub(rhs as u8)).wrapping_sub(carry_dec);
 
     update.carry = (first_register as i32 - rhs as i32 - carry_dec as i32) < 0;
     update.zero = result == 0u8;
