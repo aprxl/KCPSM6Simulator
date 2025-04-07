@@ -175,6 +175,15 @@ impl SimulationContext {
             if let Some(addr) = update.call_addr {
                 self.call_stack.push(addr);
             }
+
+            if let Some(mem_op) = update.memory_op {
+                match mem_op {
+                    MemoryOperation::Store(addr, value) => {
+                        self.scratch_memory[addr] = value;
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
 
         Ok(())
@@ -230,6 +239,22 @@ impl SimulationContext {
         }
 
         self.registers[index] = value;
+    }
+
+    pub fn get_scratch_pad_memory(&self, addr: usize) -> Option<u8> {
+        if addr > SCRATCH_PAD_MEMORY_SIZE {
+            return None;
+        }
+
+        Some(self.scratch_memory[addr])
+    }
+
+    pub fn set_scratch_pad_memory(&mut self, addr: usize, value: u8) {
+        if addr > SCRATCH_PAD_MEMORY_SIZE {
+            return;
+        }
+
+        self.scratch_memory[addr] = value;
     }
 
     fn execute_instruction(&self, instruction: Instruction) -> Result<SimulationUpdate, Error> {
@@ -290,6 +315,8 @@ impl SimulationContext {
             Instruction::ShiftRightArth { register } => {
                 shift_right::register(self, register, ShiftMode::Repeat)
             }
+            Instruction::StoreConstant { lhs, rhs } => store::register_constant(self, lhs, rhs),
+            Instruction::StoreDeref { lhs, rhs } => store::register_deref(self, lhs, rhs),
             Instruction::Subtract { lhs, rhs } => subtract::register_register(self, lhs, rhs),
             Instruction::SubtractConstant { lhs, rhs } => {
                 subtract::register_constant(self, lhs, rhs)
