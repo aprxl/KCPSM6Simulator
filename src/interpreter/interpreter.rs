@@ -4,7 +4,14 @@ use std::io::{Error, ErrorKind};
 
 use super::helpers::ShiftMode;
 
-const PROGRAM_MEMORY_SIZE: usize = 1024usize;
+pub(crate) const PROGRAM_MEMORY_SIZE: usize = 1024usize;
+pub(crate) const SCRATCH_PAD_MEMORY_SIZE: usize = 64usize;
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum MemoryOperation {
+    Fetch(usize, u8),
+    Store(usize, u8),
+}
 
 #[derive(Debug, PartialEq)]
 pub struct SimulationUpdate {
@@ -14,6 +21,7 @@ pub struct SimulationUpdate {
     pub pc: usize,
     pub call_addr: Option<usize>,
     pub ret_addr: bool,
+    pub memory_op: Option<MemoryOperation>
 }
 
 impl SimulationUpdate {
@@ -25,6 +33,7 @@ impl SimulationUpdate {
             pc: ctx.get_program_counter() + 1,
             call_addr: None,
             ret_addr: false,
+            memory_op: None
         }
     }
 
@@ -35,6 +44,7 @@ impl SimulationUpdate {
             carry: ctx.get_carry_flag(),
             call_addr: None,
             ret_addr: false,
+            memory_op: None,
             pc,
         }
     }
@@ -49,6 +59,7 @@ impl Default for SimulationUpdate {
             pc: 0usize,
             call_addr: None,
             ret_addr: false,
+            memory_op: None
         }
     }
 }
@@ -57,6 +68,7 @@ pub struct SimulationContext {
     //instructions_: Vec<(usize, Instruction)>,
     instructions: Vec<Option<Instruction>>,
     registers: [u8; 16],
+    scratch_memory: [u8; SCRATCH_PAD_MEMORY_SIZE],
     pc: usize,
     zero: bool,
     carry: bool,
@@ -69,6 +81,7 @@ impl SimulationContext {
             //instructions_: Vec::new(),
             instructions: vec![None; PROGRAM_MEMORY_SIZE],
             registers: [0u8; 16],
+            scratch_memory: [0u8; SCRATCH_PAD_MEMORY_SIZE],
             pc: 0,
             zero: false,
             carry: false,
@@ -82,6 +95,7 @@ impl SimulationContext {
             instructions: vec![None; PROGRAM_MEMORY_SIZE],
             pc: 0,
             registers,
+            scratch_memory: [0u8; SCRATCH_PAD_MEMORY_SIZE],
             zero,
             carry,
             call_stack: vec![],
@@ -99,6 +113,7 @@ impl SimulationContext {
             //instructions_: instructions,
             instructions: instr_list,
             registers: [0u8; 16],
+            scratch_memory: [0u8; SCRATCH_PAD_MEMORY_SIZE],
             pc: 0,
             zero: false,
             carry: false,
@@ -122,6 +137,7 @@ impl SimulationContext {
 
     pub fn reset(&mut self) -> &mut SimulationContext {
         self.registers = [0u8; 16];
+        self.scratch_memory = [0u8; SCRATCH_PAD_MEMORY_SIZE];
         self.zero = false;
         self.carry = false;
         self.pc = 0;

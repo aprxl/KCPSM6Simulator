@@ -12,6 +12,7 @@ pub mod rotate_left;
 pub mod rotate_right;
 pub mod shift_left;
 pub mod shift_right;
+pub mod store;
 pub mod subtract;
 pub mod subtract_carry;
 pub mod test;
