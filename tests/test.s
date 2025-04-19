@@ -1,4 +1,4 @@
-LOAD s0, 12'd
-LOAD s1, 20'd
-STORE s0, 04'd
-STORE s1, (s1)
+LOAD s0, 1'd
+STORE s0, 15'd
+LOAD s0, 20'd
+FETCH s0, 15'd

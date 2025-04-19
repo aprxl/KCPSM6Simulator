@@ -176,12 +176,15 @@ impl SimulationContext {
                 self.call_stack.push(addr);
             }
 
+            // We just fetched or stored a value from/in memory.
             if let Some(mem_op) = update.memory_op {
                 match mem_op {
                     MemoryOperation::Store(addr, value) => {
                         self.scratch_memory[addr] = value;
+                    },
+                    MemoryOperation::Fetch(addr, register) => {
+                        self.registers[register as usize] = self.scratch_memory[addr];
                     }
-                    _ => unreachable!(),
                 }
             }
         }
@@ -274,7 +277,11 @@ impl SimulationContext {
             }
             Instruction::CompareCarryConstant { lhs, rhs } => {
                 compare_carry::register_constant(self, lhs, rhs)
-            }
+            },
+            Instruction::FetchConstant { lhs, rhs } => {
+                fetch::register_constant(self, lhs, rhs)
+            },
+            Instruction::FetchDeref { lhs, rhs } => fetch::register_deref(self, lhs, rhs),
             Instruction::Or { lhs, rhs } => or::register_register(self, lhs, rhs),
             Instruction::OrConstant { lhs, rhs } => or::register_constant(self, lhs, rhs),
             Instruction::Xor { lhs, rhs } => xor::register_register(self, lhs, rhs),

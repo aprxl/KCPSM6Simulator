@@ -23,8 +23,7 @@ fn main() -> std::io::Result<()> {
     sim.initialize_instructions(p.get_instructions().clone())
         .run()?;
 
-    println!("{}", sim.get_scratch_pad_memory(4).unwrap());
-    println!("{}", sim.get_scratch_pad_memory(20).unwrap());
+    println!("{}", sim.get_register(0).unwrap());
 
     Ok(())
 }

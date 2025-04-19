@@ -4,6 +4,7 @@ pub mod and;
 pub mod call;
 pub mod compare;
 pub mod compare_carry;
+pub mod fetch;
 pub mod jump;
 pub mod load;
 pub mod or;
