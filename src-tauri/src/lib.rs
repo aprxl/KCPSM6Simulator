@@ -1,14 +1,28 @@
+use std::fs::File;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command]
-fn read_file() -> String {
-    let file = std::fs::read_to_string("/home/kyle/test.txt").unwrap();
+#[derive(serde::Serialize)]
+struct FileContent {
+    content: String,
+    size: usize
+}
 
-    file
+#[tauri::command]
+fn read_file() -> Result<FileContent, String> {
+    let file = std::fs::read_to_string("/home/kyle/test.txt");
+
+    if let Err(e) = file {
+        return Err(e.to_string());
+    }
+
+    let file = file.unwrap();
+
+    Ok(FileContent { content: file.clone(), size: file.len() })
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
