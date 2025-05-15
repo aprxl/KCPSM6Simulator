@@ -1,32 +1,23 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-type FileContent = {
-  content: string,
-  size: number
-};
-
 function App() {
-  let [content, setContent] = useState<FileContent>();
-
-  async function read() {
-    invoke<FileContent>('read_file').then(fc => {
-      setContent(fc)
-    }).catch(() => {
-      setContent({
-        content: "Unable to read file!",
-        size: -1
-      })
-    })
-  }
-
   return (
-    <main className="container">
-      <p>{content?.content}</p>
-      <p> Length: {content?.size}</p>
-      <button onClick={() => read()}> Read file </button>
+    <main>
+      <div className="grid grid-rows-[1fr_8fr_2fr] gap-y-1 h-screen">
+        <div className="border-1 border-[#3f3f3f] rounded-[5px] w-full">
+          Top
+        </div>
+
+        <div className="grid grid-cols-[1fr_4fr_1fr] gap-1 w-screen">
+          <div className="border-1 border-[#3f3f3f] rounded-[5px] w-full">Left</div>
+          <div className="border-1 border-[#3f3f3f] rounded-[5px] w-full">Middle</div>
+          <div className="border-1 border-[#3f3f3f] rounded-[5px] w-full">Right</div>
+        </div>
+
+        <div className="border-1 border-[#3f3f3f] rounded-[5px] w-full">
+          Bottom
+        </div>
+      </div>
     </main>
   );
 }
