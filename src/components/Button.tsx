@@ -1,17 +1,18 @@
-type ButtonProps = {
-    icon: string,
-    name: string,
-    onPress?: () => void
+import { Button } from "@mui/joy";
+
+type KButtonProps = {
+    icon: React.ReactNode,
+    label: string
 };
 
-export default function Button({icon, name, onPress}: ButtonProps): JSX.Element  {
+export default function KButton({icon, label}: KButtonProps) {
     return (
-        <button onClick={() => {
-            if (onPress)
-                onPress();
-        }} className="flex flex-col items-center justify-center p-2 scale-75">
-            <img src={`${icon}`} className="w-5 mb-1"></img>
-            <p className="text-center text-sm">{name}</p>
-        </button>
+        <Button variant="soft" 
+            size="md"
+            className="scale-80" 
+            startDecorator={icon}
+        >
+            {label}
+        </Button>
     )
 }
