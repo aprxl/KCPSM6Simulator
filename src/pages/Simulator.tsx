@@ -33,37 +33,6 @@ export default function Simulator() {
     if (activeTab === id) setActiveTab(newTabs[0].id);
   };
 
-  const abrirArquivo = async () => {
-    const path = await open({
-      filters: [{ name: "Assembly", extensions: ["asm"] }],
-    });
-
-    if (!path || Array.isArray(path)) return;
-
-    const content = await readTextFile(path as string);
-    addNewTab();
-    setTabs((prev) =>
-      prev.map((t, i) =>
-        i === prev.length - 1
-          ? { ...t, name: String(path).split("\\").pop()!, content }
-          : t
-      )
-    );
-  };
-
-  const salvarArquivo = async () => {
-    const tab = tabs.find((t) => t.id === activeTab);
-    if (!tab) return;
-    await writeFile(tab.name, new TextEncoder().encode(tab.content));
-  };
-
-  const executar = async () => {
-    const result = await invoke<string>("rodar_simulador", {
-      codigo: currentTab?.content || "",
-    });
-    setOutput(result);
-  };
-
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       <Sidebar />
@@ -85,19 +54,19 @@ export default function Simulator() {
           <pre>{output}</pre>
           <div className="mt-2 space-x-2">
             <button
-              onClick={abrirArquivo}
+              //onClick={}
               className="bg-green-600 px-3 py-1 rounded"
             >
               Abrir
             </button>
             <button
-              onClick={salvarArquivo}
+              //onClick={salvarArquivo}
               className="bg-yellow-600 px-3 py-1 rounded"
             >
               Salvar
             </button>
             <button
-              onClick={executar}
+              //onClick={executar}
               className="bg-red-600 px-3 py-1 rounded"
             >
               Executar
