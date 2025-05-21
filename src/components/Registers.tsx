@@ -4,21 +4,27 @@ type RegisterProps = {
     label: string
 };
 
-function Register({label}: RegisterProps) {
+function RegCheckbox({label}: RegisterProps) {
     const [value, setValue] = useState(0);
 
-  const handleChange = (event: { target: { value: string; }; }) => {
+  const handleChange = (event: { target: { value: any; }; }) => {
     const newValue = event.target.value;
 
+    // Allow the user to clear the input.
+    if (newValue === '') {
+        setValue(newValue);
+        return;
+    }
+
     // Validate the input to ensure it's a number between 0 and 255
-    if (newValue === '' || (Number(newValue) >= 0 && Number(newValue) <= 255)) {
-      setValue(Number(newValue));
+    if (Number(newValue) >= 0 && Number(newValue) <= 255) {
+      setValue(newValue);
     }
   };
 
   return (
     <div className="flex items-start">
-      <label className="mr-5">
+      <label>
         {label}
         <input
           type="number"
@@ -41,7 +47,7 @@ export default function Registers() {
             {
                 arr.map((i) => {
                     return (
-                        <Register label={`S${i.toString(16).toUpperCase()}`} />
+                        <RegCheckbox label={`S${i.toString(16).toUpperCase()}`} />
                     )
                 })
             }
