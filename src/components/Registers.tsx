@@ -24,15 +24,14 @@ function RegCheckbox({label}: RegisterProps) {
 
   return (
     <div className="flex items-start">
-      <label>
+      <label className="text-sm text-gray-300">
         {label}
         <input
-          type="number"
           value={value}
           onChange={handleChange}
           min="0"
           max="255"
-          className="rounded ml-2 px-1 py-0.5 bg-gray-700 border border-gray-500 hover:border-blue-200 border-1"
+          className="w-12 text-gray-400 hover:text-gray-200 transition-colors rounded ml-2 px-1 py-0.5 bg-gray-700 border border-gray-500 hover:border-blue-200 border-1"
         />
       </label>
     </div>
@@ -43,11 +42,13 @@ export default function Registers() {
     const arr = Array.from({length: 16}, (_, index) => index);
 
     return (
-        <div className="grid grid-cols-2 grid-rows-8 gap-y-2">
+        <div className="grid w-[85%] grid-cols-2 grid-rows-8 gap-y-2">
             {
                 arr.map((i) => {
+                    const hexIndex = i.toString(16).toUpperCase();
+
                     return (
-                        <RegCheckbox label={`S${i.toString(16).toUpperCase()}`} />
+                        <RegCheckbox label={`S${hexIndex}`} />
                     )
                 })
             }
