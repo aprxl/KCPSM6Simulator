@@ -1,4 +1,3 @@
-
 import Simulator from "./pages/Simulator";
 
 function App() {

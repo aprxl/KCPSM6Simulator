@@ -23,9 +23,9 @@ function RegCheckbox({label}: RegisterProps) {
   };
 
   return (
-    <div className="flex items-start">
-      <label className="text-sm text-gray-300">
-        {label}
+    <div className="flex">
+      <label className="text-sm text-center text-gray-300">
+        <p className="translate-x-1">{label}</p>
         <input
           value={value}
           onChange={handleChange}
@@ -42,7 +42,7 @@ export default function Registers() {
     const arr = Array.from({length: 16}, (_, index) => index);
 
     return (
-        <div className="grid w-[85%] grid-cols-2 grid-rows-8 gap-y-2">
+        <div className="grid w-[50%] grid-cols-2 grid-rows-8 m-[20%] gap-y-0.5 items-start justify-items-start">
             {
                 arr.map((i) => {
                     const hexIndex = i.toString(16).toUpperCase();
