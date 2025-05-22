@@ -36,7 +36,7 @@ export default function FlagsPanel() {
               type="checkbox"
               checked={flags[flag as keyof typeof flags] as boolean}
               onChange={() => toggle(flag as keyof typeof flags)}
-              className="appearance-none w-5 h-5 bg-gray-700 border border-gray-500 rounded-sm checked:bg-blue-500 checked:border-blue-300 transition-colors"
+              className="appearance-none w-5 h-5 bg-gray-700 border border-gray-500 rounded-sm checked:bg-green-500 checked:border-green-300 transition-colors"
             />
           </label>
         ))}
@@ -54,7 +54,7 @@ export default function FlagsPanel() {
               type="checkbox"
               checked={flags[flag as keyof typeof flags] as boolean}
               onChange={() => toggle(flag as keyof typeof flags)}
-              className="appearance-none w-5 h-5 bg-gray-700 border border-gray-500 rounded-sm checked:bg-blue-500 checked:border-blue-300 transition-colors"
+              className="appearance-none w-5 h-5 bg-gray-700 border border-gray-500 rounded-sm checked:bg-green-500 checked:border-green-300 transition-colors"
             />
           </label>
         ))}
