@@ -14,7 +14,8 @@
       {
         "title": "kcpsm6-front",
         "width": 1280,
-        "height": 720
+        "height": 960,
+        "minHeight": 920
       }
     ],
     "security": {

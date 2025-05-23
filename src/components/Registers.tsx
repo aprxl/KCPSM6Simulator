@@ -42,7 +42,7 @@ export default function Registers() {
     const arr = Array.from({length: 16}, (_, index) => index);
 
     return (
-        <div className="grid w-[50%] grid-cols-2 grid-rows-8 m-[20%] gap-y-0.5 items-start justify-items-start">
+        <div className="grid w-[90%] grid-cols-2 grid-rows-8 m-2 gap-y-0.5 items-start justify-items-start">
             {
                 arr.map((i) => {
                     const hexIndex = i.toString(16).toUpperCase();
